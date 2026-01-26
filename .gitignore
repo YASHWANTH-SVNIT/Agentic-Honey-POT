@@ -1,21 +1,22 @@
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.env
-.venv/
+*.py[cod]
+*$py.class
+.venv
 venv/
+ENV/
 
-# OS
-.DS_Store
+# Environment
+.env
+.env.local
 
-# IDE
+# Database
+*.sqlite3
+chroma_db/
+
+# IDEs
 .vscode/
 .idea/
 
-# Chroma / vector DB
-chroma_db/
-
-# Logs
-*.log
+# OS
+.DS_Store

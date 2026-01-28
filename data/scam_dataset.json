@@ -1,0 +1,301 @@
+[
+    {"id": "SCAM_001", "category": "digital_arrest", "scam_type": "authority_impersonation",
+     "intent": "Law enforcement claims criminal case involvement, demands immediate video call or threatens arrest warrant. Example: Officer calling, case filed against you, join video call now or arrest warrant issued"},
+    
+    {"id": "SCAM_002", "category": "digital_arrest", "scam_type": "authority_impersonation",
+     "intent": "Police cyber cell claims phone used in illegal activity, demands video statement within hours or FIR filed. Example: Your number involved in crime case, give video statement in two hours or police complaint"},
+    
+    {"id": "SCAM_003", "category": "kyc_banking", "scam_type": "identity_theft",
+     "intent": "Bank claims KYC expired or account will be blocked, requests card details urgently through unofficial website. Example: Your account will stop today, update KYC fast, give card number CVV OTP"},
+    
+    {"id": "SCAM_004", "category": "kyc_banking", "scam_type": "identity_theft",
+     "intent": "Bank alerts suspicious activity, requests immediate verification with sensitive details to prevent closure. Example: Big transaction detected from your card, verify immediately with CVV OTP or account closed"},
+    
+    {"id": "SCAM_005", "category": "job_fraud", "scam_type": "employment_scam",
+     "intent": "Fake work-from-home job promising high salary, requires upfront registration fee before starting. Example: Amazon job work from home big salary just pay registration money then start immediately"},
+    
+    {"id": "SCAM_006", "category": "job_fraud", "scam_type": "employment_scam",
+     "intent": "Placement agency guarantees government or MNC job, demands interview and processing fees with assured selection. Example: Government railway job guaranteed hundred percent selection pay interview fee document charges"},
+    
+    {"id": "SCAM_007", "category": "investment_scam", "scam_type": "financial_fraud",
+     "intent": "Trading scheme promises guaranteed daily returns with minimal investment and referral bonuses. Example: Earn daily big money minimum investment guaranteed returns refer friends get bonus limited slots"},
+    
+    {"id": "SCAM_008", "category": "investment_scam", "scam_type": "financial_fraud",
+     "intent": "Stock market insider tips or trading course promises high profits, requires membership payment. Example: Secret stock tips from insider last month thousand percent profit join VIP group pay membership"},
+    
+    {"id": "SCAM_009", "category": "romance_scam", "scam_type": "relationship_fraud",
+     "intent": "Online profile builds romantic connection over time, eventually requests money for travel or emergency. Example: We been talking for weeks I really like you need money for flight ticket will return when arrive"},
+    
+    {"id": "SCAM_010", "category": "romance_scam", "scam_type": "relationship_fraud",
+     "intent": "Dating match shares hardship after gaining trust, requests financial help for medical emergency. Example: You very nice person my mother suddenly hospitalized need money for operation I alone please help"},
+    
+    {"id": "SCAM_011", "category": "courier_customs", "scam_type": "authority_impersonation",
+     "intent": "International courier claims parcel held at customs with illegal items, demands payment or threatens police case. Example: Your parcel from abroad held at customs drugs found pay duty now or police case"},
+    
+    {"id": "SCAM_012", "category": "courier_customs", "scam_type": "authority_impersonation",
+     "intent": "Delivery notification for gift parcel stuck at customs, requires clearance charges with deadline. Example: Gift parcel waiting for you pay delivery charges customs clearance valid twenty four hours only"},
+    
+    {"id": "SCAM_013", "category": "lottery_prize", "scam_type": "advance_fee_fraud",
+     "intent": "Lottery winner notification demands processing fee or tax payment before prize release. Example: Congratulations you won lottery big prize money pay processing fee and tax to claim"},
+    
+    {"id": "SCAM_014", "category": "lottery_prize", "scam_type": "advance_fee_fraud",
+     "intent": "Brand contest winner requires bank details or courier charges for prize delivery. Example: You won phone and cash from shopping website give bank details pay courier charges"},
+    
+    {"id": "SCAM_015", "category": "credit_card_fraud", "scam_type": "identity_theft",
+     "intent": "Card company claims suspicious foreign transaction or card blocked, requests CVV and OTP urgently. Example: Your card blocked big transaction Dubai if not you call immediately give CVV OTP verify"},
+    
+    {"id": "SCAM_016", "category": "credit_card_fraud", "scam_type": "identity_theft",
+     "intent": "Fake card upgrade or limit increase requires existing card verification including CVV and OTP. Example: Congratulations limit increase approved confirm by giving card number CVV expiry OTP sent"},
+    
+    {"id": "SCAM_017", "category": "insurance_fraud", "scam_type": "financial_fraud",
+     "intent": "Policy maturity or claim approval demands processing charges or TDS before releasing payment. Example: Your insurance policy matured claim approved pay processing charges for money release"},
+    
+    {"id": "SCAM_018", "category": "insurance_fraud", "scam_type": "financial_fraud",
+     "intent": "Health insurance claim approval requires upfront TDS payment, promises reimbursement within hours. Example: Hospital bill claim approved big amount pay TDS first then money credited twenty four hours"},
+    
+    {"id": "SCAM_019", "category": "pension_epf_scam", "scam_type": "financial_fraud",
+     "intent": "EPFO claims unclaimed PF balance available, requires processing fee for immediate withdrawal. Example: Unclaimed PF money in your account withdraw now pay processing fee for instant transfer"},
+    
+    {"id": "SCAM_020", "category": "pension_epf_scam", "scam_type": "financial_fraud",
+     "intent": "Fake EPF advance loan offer requires registration and processing charges with instant approval promise. Example: EPF advance loan scheme get advance without employer approval pay registration processing charges instant approval"},
+    
+    {"id": "SCAM_021", "category": "tax_refund_scam", "scam_type": "identity_theft",
+     "intent": "Income tax refund approved notification demands processing fee or bank details update urgently. Example: Your tax refund approved big amount pay processing fee for instant credit update bank details"},
+    
+    {"id": "SCAM_022", "category": "tax_refund_scam", "scam_type": "identity_theft",
+     "intent": "GST refund or input credit claim demands TDS payment before processing refund. Example: GST refund pending for your business pay TDS amount refund credited twenty four hours"},
+    
+    {"id": "SCAM_023", "category": "aadhaar_update_scam", "scam_type": "identity_theft",
+     "intent": "UIDAI claims Aadhaar will be deactivated, demands verification fee for mandatory update. Example: Your Aadhaar deactivated in forty eight hours update immediately pay verification fee mandatory for all"},
+    
+    {"id": "SCAM_024", "category": "aadhaar_update_scam", "scam_type": "identity_theft",
+     "intent": "Aadhaar-PAN linking urgency with deadline, requires payment for instant linking service. Example: Aadhaar PAN linking deadline coming bank account mobile LPG blocked link instantly pay service charge"},
+    
+    {"id": "SCAM_025", "category": "voter_id_scam", "scam_type": "identity_theft",
+     "intent": "Election Commission offers online voter ID registration or correction for processing fee. Example: Register voter ID online from home no document visit pay processing fee get card seven days"},
+    
+    {"id": "SCAM_026", "category": "voter_id_scam", "scam_type": "identity_theft",
+     "intent": "Voter ID correction or name update scam claims errors, demands fee for online correction. Example: Your name spelling error in voter list correct online pay fee instant update election coming"},
+    
+    {"id": "SCAM_027", "category": "driving_license_rto", "scam_type": "identity_theft",
+     "intent": "RTO offers online driving license renewal without test or visit, requires payment with home delivery. Example: Renew driving license online no RTO visit no test pay renewal fee courier charges new DL home delivery"},
+    
+    {"id": "SCAM_028", "category": "driving_license_rto", "scam_type": "identity_theft",
+     "intent": "Fake traffic challan or vehicle RC cancellation threat demands immediate payment to avoid license suspension. Example: Your vehicle pending challans license suspension notice pay immediately or court case RC cancelled"},
+    
+    {"id": "SCAM_029", "category": "gst_notice_scam", "scam_type": "financial_fraud",
+     "intent": "GST department claims registration cancelled or compliance default, demands penalty payment immediately. Example: Your GST registration cancelled due to non filing penalty imposed pay immediately or prosecution legal action"},
+    
+    {"id": "SCAM_030", "category": "gst_notice_scam", "scam_type": "financial_fraud",
+     "intent": "Fake GST refund or input credit claim requires processing fee with urgent deadline. Example: GST input credit unclaimed for your business claim expires pay processing fee instant credit"},
+    
+    {"id": "SCAM_031", "category": "fake_certificate_degree", "scam_type": "document_fraud",
+     "intent": "Fake degree or certificate from university without exams or attendance, requires payment for printing and courier. Example: Genuine university degree certificates no exams no attendance just pay for degree courier verified documents"},
+    
+    {"id": "SCAM_032", "category": "fake_certificate_degree", "scam_type": "document_fraud",
+     "intent": "Document apostille or verification service demands high fees for embassy attestation with express service. Example: Educational certificates apostille for foreign jobs embassy attestation express service pay charges government authorized"},
+    
+    {"id": "SCAM_033", "category": "crypto_nft_scam", "scam_type": "investment_fraud",
+     "intent": "Cryptocurrency investment or mining scheme promises guaranteed daily returns, requires initial deposit. Example: Bitcoin cloud mining invest minimum amount earn daily guaranteed returns withdraw anytime limited slots"},
+    
+    {"id": "SCAM_034", "category": "crypto_nft_scam", "scam_type": "investment_fraud",
+     "intent": "NFT airdrop or crypto tokens giveaway requests wallet connection or seed phrase for claiming free tokens. Example: Exclusive NFT airdrop connect wallet claim free tokens verify wallet enter seed phrase limited users"},
+    
+    {"id": "SCAM_035", "category": "upi_qr_fraud", "scam_type": "payment_fraud",
+     "intent": "Buyer shows fake payment screenshot, asks seller to scan QR code for payment verification which actually requests money. Example: Sir I sent money please scan QR to confirm payment received its verification only"},
+    
+    {"id": "SCAM_036", "category": "upi_qr_fraud", "scam_type": "payment_fraud",
+     "intent": "Claims accidental money transfer, sends QR code for refund collection which is payment request with emotional urgency. Example: Bhaiya accidentally sent money to your account by mistake poor person month salary please refund scan QR"},
+    
+    {"id": "SCAM_037", "category": "olx_marketplace_qr", "scam_type": "payment_fraud",
+     "intent": "Fake buyer on marketplace offers advance or token payment via QR code which is actually money request. Example: Interested in your product coming next week scan QR for token payment verified buyer protection"},
+    
+    {"id": "SCAM_038", "category": "olx_marketplace_qr", "scam_type": "payment_fraud",
+     "intent": "Poses as delivery agent, asks for QR scan for COD verification or delivery confirmation which requests payment. Example: Delivery agent your order ready COD verification scan QR confirm you have cash new rule"},
+    
+    {"id": "SCAM_039", "category": "sextortion_video_call", "scam_type": "blackmail",
+     "intent": "Claims to have compromising video or photos, threatens to send to contacts unless payment made immediately. Example: I have your private video will send all Facebook friends office colleagues pay money now or video goes viral"},
+    
+    {"id": "SCAM_040", "category": "sextortion_video_call", "scam_type": "blackmail",
+     "intent": "Fake cyber police claims victim in video call case with minor, threatens arrest unless settlement payment made. Example: Cyber crime your video call recorded with minor girl case filed pay settlement fine or arrest jail seven years"},
+    
+    {"id": "SCAM_041", "category": "accidental_refund", "scam_type": "payment_fraud",
+     "intent": "Claims technical error credited money by mistake, demands urgent refund with penalty threat and auto-reversal. Example: Payment app system error credited big money to your account auto reversed with penalty refund now urgent"},
+    
+    {"id": "SCAM_042", "category": "accidental_refund", "scam_type": "payment_fraud",
+     "intent": "Fake merchant claims wrong refund amount credited, threatens account suspension and legal notice for excess amount. Example: Shopping website wrong refund credited excess amount return within hours or account suspended legal notice"},
+    
+    {"id": "SCAM_043", "category": "charity_donation", "scam_type": "donation_fraud",
+     "intent": "Fake charity or NGO impersonates known organization, requests donations for disaster relief with emotional appeal. Example: Relief fund urgent help needed for flood victims families homeless donate now every rupee helps government approved"},
+    
+    {"id": "SCAM_044", "category": "charity_donation", "scam_type": "donation_fraud",
+     "intent": "Individual medical emergency uses child or family illness, shares fake bills and requests financial help emotionally. Example: My child has cancer need money for operation poor family spent all savings operation in three days or child will die please help"},
+    
+    {"id": "SCAM_045", "category": "loan_app_harassment", "scam_type": "predatory_lending",
+     "intent": "Instant loan app offers quick approval without CIBIL check, requires app permissions and charges exorbitant interest with contact harassment. Example: Instant loan in five minutes no CIBIL no documents just download app give phone permissions daily interest apply now"},
+    
+    {"id": "SCAM_046", "category": "loan_app_harassment", "scam_type": "predatory_lending",
+     "intent": "Fake bank loan pre-approval requires upfront processing fee or insurance before disbursement with guaranteed approval. Example: Bank personal loan pre approved no documents no CIBIL pay processing fee insurance loan credited two hours guaranteed"},
+    
+    {"id": "SCAM_047", "category": "deepfake_ai_voice", "scam_type": "impersonation_fraud",
+     "intent": "AI-cloned voice of boss or family member in emergency, requests immediate money transfer with urgent deal or crisis. Example: Hello this is boss urgent meeting client my card declined need money immediately for deal closure transfer now big revenue"},
+    
+    {"id": "SCAM_048", "category": "deepfake_ai_voice", "scam_type": "impersonation_fraud",
+     "intent": "Fake family emergency call using cloned voice claims accident or police custody, needs bail money immediately. Example: Papa I met accident car hit someone police arrested me need bail money immediately or FIR filed phone dying transfer fast"},
+    
+    {"id": "SCAM_049", "category": "recovery_scam", "scam_type": "secondary_scam",
+     "intent": "Fake cyber crime recovery service claims to retrieve lost money from previous scam, requires investigation fee with false promises. Example: Cyber crime we can recover your lost money from fraud trace scammer file case pay investigation charges guaranteed money back"},
+    
+    {"id": "SCAM_050", "category": "recovery_scam", "scam_type": "secondary_scam",
+     "intent": "Fake lawyer offers to file case against scammers, claims compensation recovery through court with upfront legal fees. Example: Lawyer handle fraud cases file complaint against scammer get compensation from court pay court fee lawyer charges high win chance"},
+    
+    {"id": "SCAM_051", "category": "ration_card_subsidy", "scam_type": "identity_theft",
+     "intent": "Fake ration card digitization or subsidy claim requires Aadhaar linking charges with government mandate claims. Example: Digital ration card mandatory convert online link Aadhaar add family pay service charge get subsidy arrears deadline coming"},
+    
+    {"id": "SCAM_052", "category": "ration_card_subsidy", "scam_type": "identity_theft",
+     "intent": "One Nation One Ration Card registration demands activation fee for inter-state portability with limited slots. Example: One nation ration card use anywhere in India register now pay activation fee instant approval limited slots government scheme"},
+    
+    {"id": "SCAM_053", "category": "streaming_subscription", "scam_type": "payment_fraud",
+     "intent": "Fake OTT renewal or free trial requires card details with account suspension threat and limited offer. Example: Streaming subscription expired pay to continue account suspended in hours renew now get free months limited offer"},
+    
+    {"id": "SCAM_054", "category": "streaming_subscription", "scam_type": "payment_fraud",
+     "intent": "Payment failed notification directs to fake login page to steal credentials and card information urgently. Example: Payment failed for subscription update card details within hours or account closed login give email password card number CVV"},
+    
+    {"id": "SCAM_055", "category": "gaming_scam", "scam_type": "payment_fraud",
+     "intent": "Free game currency or items requires login credentials or payment for UC diamonds with account hack claims. Example: Get free game currency enter player ID password for verification currency credited instantly also buy cheap limited offer"},
+    
+    {"id": "SCAM_056", "category": "gaming_scam", "scam_type": "payment_fraud",
+     "intent": "Tournament or esports scam requires registration fee for fake competitions with prize money claims. Example: Gaming tournament win big prize money register your team pay entry fee limited teams spots filling fast official partner"},
+    
+    {"id": "SCAM_057", "category": "social_media_verification", "scam_type": "payment_fraud",
+     "intent": "Fake blue tick or account verification service offers verification badge for payment with approval claims. Example: Get verified badge approved verification service pay charges approval in two days limited accounts this month"},
+    
+    {"id": "SCAM_058", "category": "social_media_verification", "scam_type": "payment_fraud",
+     "intent": "Follower or engagement boost scam offers fake followers and likes for payment with real accounts claim. Example: Grow your account get thousands real followers likes pay money results in hours make account viral guaranteed"},
+    
+    {"id": "SCAM_059", "category": "dating_app_extortion", "scam_type": "blackmail",
+     "intent": "Dating app match leads to video call then blackmails with recorded content, threatens to share unless payment made. Example: Matched on dating app after video call I recorded everything pay money or send to your friends office contacts deadline"},
+    
+    {"id": "SCAM_060", "category": "dating_app_extortion", "scam_type": "blackmail",
+     "intent": "Fake dating profile claims to be minor after intimate chat, threatens legal action unless settlement payment made. Example: Actually I am minor my father found our chats filing case against you pay settlement or police jail minimum years"},
+    
+    {"id": "SCAM_061", "category": "wrong_number_scam", "scam_type": "relationship_fraud",
+     "intent": "Accidental wrong number builds friendship over time, eventually pitches investment or requests money help with elaborate story. Example: Hi wrong number but nice lets be friends after weeks chatting I found great investment opportunity minimum investment double money"},
+    
+    {"id": "SCAM_062", "category": "wrong_number_scam", "scam_type": "relationship_fraud",
+     "intent": "Stranger starts casual chat, builds rapport then requests small favor or emergency money with promise to return quickly. Example: Hello wrong number you seem nice lets chat friend need small help my card blocked medicine for grandmother urgent return tomorrow please"},
+    
+    {"id": "SCAM_063", "category": "fake_placement_agency", "scam_type": "employment_scam",
+     "intent": "Consultancy guarantees placement in specific companies requiring registration training and interview charges with success claims. Example: Job placement guaranteed big companies hiring pay registration training interview charges job in thirty days or money back thousands placed"},
+    
+    {"id": "SCAM_064", "category": "fake_placement_agency", "scam_type": "employment_scam",
+     "intent": "Foreign job placement promises overseas employment with high salary, requires passport and visa charges with labor export claims. Example: Jobs abroad Dubai Saudi high salary driver helper positions pay visa processing charges flight free job confirmed ministry approved"},
+    
+    {"id": "SCAM_065", "category": "mlm_recruitment", "scam_type": "pyramid_scheme",
+     "intent": "Multi-level marketing requires product purchase with passive income from team building and referral commissions. Example: MLM business earn monthly big money buy starter pack sell products build team each person commission their team more commission unlimited"},
+    
+    {"id": "SCAM_066", "category": "mlm_recruitment", "scam_type": "pyramid_scheme",
+     "intent": "Pyramid scheme disguised as investment requiring deposit, earnings only from recruiting with unsustainable payouts. Example: Investment plan invest once refer two people get double they refer two each you get more build network earn crores guaranteed"},
+    
+    {"id": "SCAM_067", "category": "forex_trading_scam", "scam_type": "investment_fraud",
+     "intent": "Forex signals group promises high accuracy trading tips, requires membership payment with daily earning claims. Example: Forex signals premium group daily signals high accuracy students earning big money minimum investment lifetime membership pay now limited members"},
+    
+    {"id": "SCAM_068", "category": "forex_trading_scam", "scam_type": "investment_fraud",
+     "intent": "Fake forex broker offers high leverage and deposit bonuses, blocks withdrawal after deposit with KYC excuses. Example: Forex trading account deposit bonus high leverage low spread withdraw anytime start trading bonus first users get free credit register now"},
+    
+    {"id": "SCAM_069", "category": "ponzi_pyramid_scheme", "scam_type": "investment_fraud",
+     "intent": "Ponzi scheme promises fixed daily or monthly returns from vague business with early investor payouts funded by new money. Example: Investment company invest get fixed daily returns total yearly profit safe withdraw anytime thousands investors earning daily join now"},
+    
+    {"id": "SCAM_070", "category": "ponzi_pyramid_scheme", "scam_type": "investment_fraud",
+     "intent": "Chit fund or collective investment offers guaranteed returns through pooled money with fake registration claims. Example: Chit fund government registered invest monthly get lump sum at end double return loan against investment anytime years trust"},
+    
+    {"id": "SCAM_071", "category": "mutual_fund_fraud", "scam_type": "investment_fraud",
+     "intent": "Fake mutual fund advisor promises guaranteed high returns and insider tips, collects money claiming to invest but disappears. Example: Certified fund advisor manage portfolios average returns yearly my strategy insider picks minimum investment registered trust me"},
+    
+    {"id": "SCAM_072", "category": "mutual_fund_fraud", "scam_type": "investment_fraud",
+     "intent": "Fake SIP or lump sum scheme mimics mutual fund with unrealistic returns and fake fund house names. Example: New mutual fund special offer invest monthly guaranteed returns total investment get profit lock period limited investors join now"},
+    
+    {"id": "SCAM_073", "category": "fixed_deposit_scam", "scam_type": "financial_fraud",
+     "intent": "Fake bank or NBFC offers higher interest rates on fixed deposits than market, collects money unregistered. Example: Fixed deposit special interest rate banks giving only low rate registered finance company deposit minimum interest paid monthly safe"},
+    
+    {"id": "SCAM_074", "category": "fixed_deposit_scam", "scam_type": "financial_fraud",
+     "intent": "Cooperative bank or credit society offers attractive FD schemes lacking proper license or insurance. Example: Cooperative bank fixed deposit scheme better than big banks government recognized deposit insurance available years heritage customers trust"},
+    
+    {"id": "SCAM_075", "category": "fake_seller_scam", "scam_type": "marketplace_fraud",
+     "intent": "Online seller demands advance payment for goods at too-low prices but never delivers with urgent sale excuse. Example: Selling phone brand new sealed box very cheap urgent sale moving abroad pay half advance balance delivery original bill warranty"},
+    
+    {"id": "SCAM_076", "category": "fake_seller_scam", "scam_type": "marketplace_fraud",
+     "intent": "Electronics at suspiciously low prices through social media requiring full advance to personal account with shipping delay excuses. Example: Wholesale electronics sale phones laptops half price imported stock pay full advance delivery seven days courier no COD limited stock"},
+    
+    {"id": "SCAM_077", "category": "event_ticket_scam", "scam_type": "marketplace_fraud",
+     "intent": "Fake tickets for concerts or sports at inflated prices, collects money but sends fake tickets or nothing. Example: Match tickets premium seats sold out everywhere I have extra tickets pay now courier tickets or email tickets grab before late last chance"},
+    
+    {"id": "SCAM_078", "category": "event_ticket_scam", "scam_type": "marketplace_fraud",
+     "intent": "Concert tickets at too-low prices requiring advance payment, uses fake booking IDs and organizer claims. Example: Concert tickets cheap price cant attend selling two tickets book now send ticket email after payment booking ID genuine tickets dont miss"},
+    
+    {"id": "SCAM_079", "category": "passport_visa_scam", "scam_type": "document_fraud",
+     "intent": "Fake passport agent offers fast-track issuance without police verification, demands high charges for quick service. Example: Get passport in seven days no police verification no documents hassle pay charges we handle everything years experience all India service"},
+    
+    {"id": "SCAM_080", "category": "passport_visa_scam", "scam_type": "document_fraud",
+     "intent": "Visa processing scam promises guaranteed visa for foreign countries, collects fees but provides fake documents. Example: Tourist visa guaranteed high approval rate apply through agency pay visa fee processing interview coaching visa in thirty days experience"},
+    
+    {"id": "SCAM_081", "category": "legal_notice_scam", "scam_type": "authority_impersonation",
+     "intent": "Fake legal notice or court summons threatens action for fabricated debt, demands settlement payment to avoid court. Example: Legal notice case filed against you for loan default court hearing arrest warrant may issue settle case out of court pay avoid court"},
+    
+    {"id": "SCAM_082", "category": "legal_notice_scam", "scam_type": "authority_impersonation",
+     "intent": "Fake consumer court or cyber cell notice claims complaint filed, requires payment for case withdrawal. Example: Consumer complaint filed against you by customer pay appearance fee case withdrawal charges avoid court trial ban from shopping settle now"},
+    
+    {"id": "SCAM_083", "category": "freelance_payment_scam", "scam_type": "employment_scam",
+     "intent": "Fake client offers high-paying project requiring upfront membership or software subscription before work begins. Example: Saw your profile big project for you need premium membership to bid pay membership fee award project immediately this requirement"},
+    
+    {"id": "SCAM_084", "category": "freelance_payment_scam", "scam_type": "employment_scam",
+     "intent": "Client requests work completion before payment, disappears after receiving deliverables or uses fake payment screenshot. Example: Great work project almost complete send final files now release payment payment screenshot attached need files urgent client meeting trust me"},
+    
+    {"id": "SCAM_085", "category": "internship_scam", "scam_type": "employment_scam",
+     "intent": "Fake internship offers stipend and certificate requiring registration fee with no actual work or learning. Example: Company internship program online monthly stipend certificate opportunity open all streams pay registration training material limited seats apply now"},
+    
+    {"id": "SCAM_086", "category": "internship_scam", "scam_type": "employment_scam",
+     "intent": "Work-from-home internship collects information never provides work, or assigns unpaid work with payment promise after trial. Example: Work from home data entry forms daily big monthly first complete forms free trial check quality then pay activation fee unlimited forms"},
+    
+    {"id": "SCAM_087", "category": "cloud_storage_scam", "scam_type": "payment_fraud",
+     "intent": "Fake cloud storage full notification directs to payment page for upgrade with data deletion threat. Example: Cloud storage full upgrade now to avoid losing files your data deleted in hours upgrade give card details instant activation first month free"},
+    
+    {"id": "SCAM_088", "category": "cloud_storage_scam", "scam_type": "payment_fraud",
+     "intent": "Fake security alert claims account compromised, requires verification payment or premium upgrade to restore access. Example: Security alert suspicious login account suspended for security verify within hours or data deleted pay verification fee upgrade premium enhanced security"},
+    
+    {"id": "SCAM_089", "category": "app_download_reward", "scam_type": "payment_fraud",
+     "intent": "Fake app download reward scheme promises money for installing apps, requires activation fee or never pays. Example: Earn money per app download apps use five minutes earn money daily big monthly pay activation fee get task list minimum withdraw users earning"},
+    
+    {"id": "SCAM_090", "category": "app_download_reward", "scam_type": "payment_fraud",
+     "intent": "Referral-based earning app requires download and deposit, is pyramid scheme with withdrawal issues. Example: Earning app install get welcome bonus refer friends each friend commission unlimited earning minimum deposit activate account withdraw anytime downloads give permissions"},
+    
+    {"id": "SCAM_091", "category": "electricity_utility_scam", "scam_type": "payment_fraud",
+     "intent": "Fake electricity board claims meter tampering or bill overdue, threatens disconnection unless payment to personal account. Example: Electricity board meter tampering detected fine imposed bill dues pay within hours or electricity disconnected police complaint filed avoid disconnection"},
+    
+    {"id": "SCAM_092", "category": "electricity_utility_scam", "scam_type": "payment_fraud",
+     "intent": "Smart meter installation scam demands charges for mandatory upgrade with government order and deadline pressure. Example: Government mandate analog meters replaced by smart meters installation charges book slot after deadline penalty electricity disconnection consumer ID book now free if today"},
+    
+    {"id": "SCAM_093", "category": "scholarship_fraud", "scam_type": "financial_fraud",
+     "intent": "Fake scholarship or education grant requires registration fee with government scheme claims and guaranteed approval. Example: Government scholarship yearly for students all streams apply online registration fee approval guaranteed first come limited scholarships documents deadline apply now"},
+    
+    {"id": "SCAM_094", "category": "scholarship_fraud", "scam_type": "financial_fraud",
+     "intent": "Private scholarship foundation requires application fee for merit-based aid with fake organization claims. Example: Scholarship foundation announcing scholarships for students merit based selection winners announced pay application fee upload documents genuine trust initiative apply now"},
+    
+    {"id": "SCAM_095", "category": "property_tax_scam", "scam_type": "financial_fraud",
+     "intent": "Municipal corporation claims property tax dues or penalties with property attachment threat unless immediate payment. Example: Municipal corporation outstanding property tax penalty added pay within hours or property attachment order issued case number pay online urgent"},
+    
+    {"id": "SCAM_096", "category": "property_tax_scam", "scam_type": "financial_fraud",
+     "intent": "Fake property document verification or registration service demands fees for online mutation through unofficial portal. Example: Property card update online ownership nominee no registrar visit charges document verification registration property updated days all India upload documents government approved"},
+    
+    {"id": "SCAM_097", "category": "medical_insurance_claim", "scam_type": "financial_fraud",
+     "intent": "Fake medical reimbursement or claim approval requires upfront TDS payment before releasing claim amount. Example: Insurance claim approved hospital bills verified pay TDS for claim release amount credited hours after TDS process now dont delay deadline"},
+    
+    {"id": "SCAM_098", "category": "medical_insurance_claim", "scam_type": "financial_fraud",
+     "intent": "Health insurance renewal scam with fake premium increase notification directing to unofficial payment. Example: Insurance policy renewal due premium increased medical inflation renew before date or policy lapsed coverage discontinued pay now avoid claim rejection immediate renewal"},
+    
+    {"id": "SCAM_099", "category": "exam_registration_scam", "scam_type": "financial_fraud",
+     "intent": "Fake competitive exam registration or admit card service charges fees for free government processes. Example: Exam registration open register online application fee limited seats admit card download service previous papers complete package guaranteed seat official partner register hurry"},
+    
+    {"id": "SCAM_100", "category": "exam_registration_scam", "scam_type": "financial_fraud",
+     "intent": "Fake exam result correction or mark verification service demands charges for result changes with guaranteed pass claims. Example: Failed in exam we can change result internal contacts convert fail to pass increase marks charges complete result change success rate students helped confidential"}
+]

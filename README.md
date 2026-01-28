@@ -2,6 +2,158 @@
 
 ## 🎯 Project Overview
 
+agentic_honey-pot/
+│
+├── README.md                          # Main documentation
+├── requirements.txt                   # Python dependencies
+├── .env.example                       # Environment variables template
+├── .env                              # Actual environment variables (gitignored)
+├── .gitignore                        # Git ignore file
+│
+├── main.py                           # FastAPI application entry point
+├── config.py                         # Configuration management
+│
+├── app/                              # Main application directory
+│   ├── __init__.py
+│   │
+│   ├── api/                          # API layer
+│   │   ├── __init__.py
+│   │   ├── dependencies.py           # API dependencies (auth, session)
+│   │   ├── middleware.py             # Custom middleware
+│   │   └── routes/                   # API routes
+│   │       ├── __init__.py
+│   │       ├── message.py            # Main message endpoint
+│   │       └── health.py             # Health check endpoint
+│   │
+│   ├── models/                       # Pydantic models
+│   │   ├── __init__.py
+│   │   ├── schemas.py                # Request/Response schemas
+│   │   ├── session.py                # Session models
+│   │   └── intelligence.py           # Intelligence data models
+│   │
+│   ├── services/                     # Business logic
+│   │   ├── __init__.py
+│   │   │
+│   │   ├── session/                  # Session management
+│   │   │   ├── __init__.py
+│   │   │   ├── manager.py            # Session CRUD operations
+│   │   │   └── store.py              # Session storage (Redis/Memory)
+│   │   │
+│   │   ├── detection/                # Detection pipeline
+│   │   │   ├── __init__.py
+│   │   │   ├── pipeline.py           # Main detection orchestrator
+│   │   │   ├── pre_screen.py         # Pre-screening filters
+│   │   │   ├── language_detector.py  # Language detection
+│   │   │   ├── rag_retriever.py      # RAG evidence retrieval
+│   │   │   ├── llm_detector.py       # LLM judgment
+│   │   │   └── decision_maker.py     # Final decision logic
+│   │   │
+│   │   ├── engagement/               # Agent engagement
+│   │   │   ├── __init__.py
+│   │   │   ├── agent.py              # Main agent response generator
+│   │   │   ├── persona_selector.py   # Persona selection logic
+│   │   │   ├── stage_manager.py      # Stage progression
+│   │   │   ├── stop_checker.py       # Stop condition checker
+│   │   │   └── prompt_builder.py     # LLM prompt construction
+│   │   │
+│   │   ├── intelligence/             # Intelligence extraction
+│   │   │   ├── __init__.py
+│   │   │   ├── extractors.py         # Regex pattern extractors
+│   │   │   ├── manager.py            # Intel storage management
+│   │   │   └── analyzer.py           # Intel analysis
+│   │   │
+│   │   ├── rag/                      # RAG system
+│   │   │   ├── __init__.py
+│   │   │   ├── vector_store.py       # ChromaDB interface
+│   │   │   ├── embedder.py           # Embedding model
+│   │   │   ├── loader.py             # Dataset loader
+│   │   │   └── query.py              # Query interface
+│   │   │
+│   │   ├── llm/                      # LLM client
+│   │   │   ├── __init__.py
+│   │   │   ├── client.py             # Base LLM client
+│   │   │   ├── groq_client.py        # Groq implementation
+│   │   │   ├── gemini_client.py      # Gemini implementation
+│   │   │   └── anthropic_client.py   # Claude implementation
+│   │   │
+│   │   └── finalization/             # Session finalization
+│   │       ├── __init__.py
+│   │       ├── report_builder.py     # Intelligence report assembly
+│   │       ├── guvi_callback.py      # GUVI API callback
+│   │       └── archiver.py           # Session archival
+│   │
+│   ├── core/                         # Core utilities
+│   │   ├── __init__.py
+│   │   ├── config.py                 # Configuration loader
+│   │   ├── logging.py                # Logging setup
+│   │   ├── exceptions.py             # Custom exceptions
+│   │   └── utils.py                  # Utility functions
+│   │
+│   └── db/                           # Database/Storage
+│       ├── __init__.py
+│       ├── redis_client.py           # Redis connection
+│       └── models.py                 # Database models (if using SQL)
+│
+├── data/                             # Data files
+│   ├── scam_dataset.json             # 100-record scam dataset
+│   ├── personas.json                 # Persona definitions
+│   ├── extraction_targets.json       # Category-specific targets
+│   └── stage_config.json             # Stage definitions
+│
+├── config/                           # Configuration files
+│   ├── __init__.py
+│   ├── personas.py                   # Persona mappings
+│   ├── stages.py                     # Stage configurations
+│   ├── extraction_targets.py         # Extraction target definitions
+│   └── prompts.py                    # LLM prompt templates
+│
+├── chroma_db/                        # ChromaDB storage (auto-generated)
+│   └── (vector database files)
+│
+├── logs/                             # Application logs
+│   ├── app.log
+│   ├── detection.log
+│   ├── engagement.log
+│   └── errors.log
+│
+├── tests/                            # Test suite
+│   ├── __init__.py
+│   ├── conftest.py                   # Pytest configuration
+│   │
+│   ├── unit/                         # Unit tests
+│   │   ├── __init__.py
+│   │   ├── test_pre_screen.py
+│   │   ├── test_language_detector.py
+│   │   ├── test_extractors.py
+│   │   ├── test_persona_selector.py
+│   │   └── test_stage_manager.py
+│   │
+│   ├── integration/                  # Integration tests
+│   │   ├── __init__.py
+│   │   ├── test_detection_flow.py
+│   │   ├── test_engagement_flow.py
+│   │   ├── test_rag_system.py
+│   │   └── test_guvi_callback.py
+│   │
+│   └── fixtures/                     # Test fixtures
+│       ├── __init__.py
+│       ├── sample_messages.py
+│       └── mock_responses.py
+│
+├── scripts/                          # Utility scripts
+│   ├── setup_database.py             # Initialize ChromaDB
+│   ├── load_dataset.py               # Load scam dataset
+│   ├── test_llm_connection.py        # Test LLM API
+│   ├── test_guvi_callback.py         # Test GUVI endpoint
+│   └── generate_sample_data.py       # Generate test data
+│
+└── docs/                             # Additional documentation
+    ├── API.md                        # API documentation
+    ├── WORKFLOW.md                   # Detailed workflow
+    ├── DATASET.md                    # Dataset documentation
+    ├── DEPLOYMENT.md                 # Deployment guide
+    └── TROUBLESHOOTING.md            # Common issues
+
 ### Objective
 Build an AI-powered honeypot system that:
 1. **Detects** scam intent in incoming messages using RAG + LLM

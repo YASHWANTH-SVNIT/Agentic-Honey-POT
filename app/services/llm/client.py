@@ -10,7 +10,8 @@ import settings
 try:
     from groq import Groq
     GROQ_AVAILABLE = True
-except ImportError:
+except ImportError as e:
+    print(f"[WARN] Groq import failed: {e}")
     GROQ_AVAILABLE = False
 
 try:
@@ -33,18 +34,18 @@ class LLMClient:
             try:
                 self.primary_client = Groq(api_key=settings.GROQ_API_KEY)
                 self.primary_model = settings.LLM_MODEL_GROQ
-                print("✓ Groq client initialized (primary)")
+                print("[OK] Groq client initialized (primary)")
             except Exception as e:
-                print(f"✗ Groq initialization failed: {e}")
+                print(f"[ERROR] Groq initialization failed: {e}")
         
         # Initialize Gemini (fallback)
         if GENAI_AVAILABLE and settings.GOOGLE_API_KEY:
             try:
                 genai.configure(api_key=settings.GOOGLE_API_KEY)
                 self.fallback_client = genai.GenerativeModel(settings.LLM_MODEL_GEMINI)
-                print("✓ Gemini client initialized (fallback)")
+                print("[OK] Gemini client initialized (fallback)")
             except Exception as e:
-                print(f"✗ Gemini initialization failed: {e}")
+                print(f"[ERROR] Gemini initialization failed: {e}")
     
     def generate(self, prompt: str, temperature: float = 0.7, max_tokens: int = 1000) -> str:
         """Generate response from LLM with fallback"""
@@ -59,7 +60,7 @@ class LLMClient:
                 )
                 return response.choices[0].message.content
             except Exception as e:
-                print(f"✗ Groq API error: {e}")
+                print(f"[ERROR] Groq API error: {e}")
         
         # Fallback to Gemini
         if self.fallback_client:
@@ -67,7 +68,7 @@ class LLMClient:
                 response = self.fallback_client.generate_content(prompt)
                 return response.text
             except Exception as e:
-                print(f"✗ Gemini API error: {e}")
+                print(f"[ERROR] Gemini API error: {e}")
         
         raise Exception("No LLM client available")
     
@@ -93,7 +94,7 @@ class LLMClient:
         try:
             return json.loads(json_str)
         except json.JSONDecodeError as e:
-            print(f"✗ JSON parsing error: {e}")
+            print(f"[ERROR] JSON parsing error: {e}")
             print(f"Response text: {text[:500]}...")
             # Return a default structure
             return {

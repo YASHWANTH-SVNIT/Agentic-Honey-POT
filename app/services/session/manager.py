@@ -24,13 +24,13 @@ class SessionManager:
             try:
                 import redis
                 self.redis_client = redis.from_url(settings.REDIS_URL)
-                print("✓ Redis session store initialized")
+                print("[OK] Redis session store initialized")
             except Exception as e:
-                print(f"✗ Redis initialization failed: {e}")
-                print("→ Falling back to in-memory storage")
+                print(f"[ERROR] Redis initialization failed: {e}")
+                print("[INFO] Falling back to in-memory storage")
                 self.use_redis = False
         else:
-            print("✓ In-memory session store initialized")
+            print("[OK] In-memory session store initialized")
     
     def create_session(self, session_id: str) -> SessionData:
         """Create a new session"""
@@ -57,7 +57,7 @@ class SessionManager:
                     session_dict = json.loads(data)
                     return SessionData(**session_dict)
             except Exception as e:
-                print(f"✗ Redis get error: {e}")
+                print(f"[ERROR] Redis get error: {e}")
         
         return _sessions.get(session_id)
     
@@ -72,7 +72,7 @@ class SessionManager:
             try:
                 self.redis_client.delete(f"session:{session_id}")
             except Exception as e:
-                print(f"✗ Redis delete error: {e}")
+                print(f"[ERROR] Redis delete error: {e}")
         
         if session_id in _sessions:
             del _sessions[session_id]
@@ -92,7 +92,7 @@ class SessionManager:
                     json.dumps(session_dict)
                 )
             except Exception as e:
-                print(f"✗ Redis save error: {e}")
+                print(f"[ERROR] Redis save error: {e}")
         
         # Always save to in-memory as backup
         _sessions[session.session_id] = session

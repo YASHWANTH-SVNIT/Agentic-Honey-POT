@@ -17,7 +17,7 @@ LLM_PROVIDER = os.getenv("LLM_PROVIDER", "groq")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 LLM_MODEL_GROQ = os.getenv("LLM_MODEL_GROQ", "llama-3.1-70b-versatile")
-LLM_MODEL_GEMINI = os.getenv("LLM_MODEL_GEMINI", "gemini-1.5-pro")
+LLM_MODEL_GEMINI = os.getenv("LLM_MODEL_GEMINI", "gemini-pro")
 
 # Vector Store Configuration
 CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./chroma_db")

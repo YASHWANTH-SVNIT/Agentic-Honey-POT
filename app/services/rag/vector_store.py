@@ -25,15 +25,11 @@ class VectorStore:
     
     def _get_or_create_collection(self):
         """Get existing collection or create new one"""
-        try:
-            collection = self.client.get_collection(name="scam_patterns")
-            print(f"✓ Loaded existing collection: scam_patterns ({collection.count()} patterns)")
-        except:
-            collection = self.client.create_collection(
-                name="scam_patterns",
-                metadata={"description": "Scam pattern database for RAG detection"}
-            )
-            print("✓ Created new collection: scam_patterns")
+        collection = self.client.get_or_create_collection(
+            name="scam_patterns",
+            metadata={"description": "Scam pattern database for RAG detection"}
+        )
+        print(f"[OK] Loaded/Created collection: scam_patterns ({collection.count()} patterns)")
         
         return collection
     
@@ -81,7 +77,7 @@ class VectorStore:
             documents=documents
         )
         
-        print(f"✓ Added {len(patterns)} patterns to ChromaDB")
+        print(f"[OK] Added {len(patterns)} patterns to ChromaDB")
         return len(patterns)
     
     def query_similar(self, query_text: str, n_results: int = 5) -> Dict[str, Any]:
@@ -120,7 +116,7 @@ class VectorStore:
         """Load scam dataset from JSON file"""
         path = Path(json_path)
         if not path.exists():
-            print(f"✗ Dataset file not found: {json_path}")
+            print(f"[ERROR] Dataset file not found: {json_path}")
             return 0
         
         with open(path, 'r', encoding='utf-8') as f:
@@ -132,7 +128,7 @@ class VectorStore:
         elif isinstance(data, dict):
             patterns = data.get("patterns", [])
         else:
-            print(f"✗ Invalid dataset format")
+            print(f"[ERROR] Invalid dataset format")
             return 0
         
         return self.add_patterns(patterns)

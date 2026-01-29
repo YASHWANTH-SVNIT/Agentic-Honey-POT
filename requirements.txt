@@ -7,3 +7,5 @@ langdetect
 redis
 httpx
 python-dotenv
+groq
+google-generativeai

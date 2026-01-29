@@ -20,8 +20,9 @@ async def handle_message(
     if not session:
         session = session_manager.create_session(request.sessionId)
     
-    # 3. Detection Phase (Phase 2)
+    # 3. Route Decision: Detection vs Engagement
     if not session.scam_detected:
+        # PHASE 2: Detection Pipeline
         print(f"[API] Processing for detection: {request.sessionId}")
         result = await pipeline.process(request)
         
@@ -29,7 +30,7 @@ async def handle_message(
         decision = result.get("decision")
         
         # Simple response generation based on detection
-        reply = "Processing your request..."
+        reply = None
         if action == "engage":
             reply = "I understand. This sounds very serious. How can I help?"
         elif action == "probe":
@@ -44,11 +45,31 @@ async def handle_message(
             }
         )
     
-    # 4. Engagement Phase (Phase 3 Placeholder)
+    # 4. PHASE 3: Engagement Pipeline
     else:
         print(f"[API] Routing to Engagement: {request.sessionId}")
+        
+        from app.services.engagement.agent import EngagementAgent
+        
+        message_text = request.message.text
+        reply_text = await EngagementAgent.generate_response(
+            session=session,
+            message_text=message_text,
+            history=request.conversationHistory
+        )
+        
+        # Update session
+        session_manager.update_session(session)
+        
         return MessageResponse(
-            reply="Understood. Please guide me on what to do next.",
+            reply=reply_text,
             action="engage",
-            metadata={"status": "engaging", "category": session.category}
+            metadata={
+                "scam_detected": True,
+                "category": session.category,
+                "stage": session.stage,
+                "turn": session.turn_count,
+                "persona": getattr(session, 'persona', None),
+                "extracted_intel": session.extracted_intel
+            }
         )

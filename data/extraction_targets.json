@@ -1,0 +1,49 @@
+{
+    "digital_arrest": [
+        "officer_name",
+        "case_number",
+        "video_call_app",
+        "meeting_id",
+        "upi_id",
+        "bank_account"
+    ],
+    "job_fraud": [
+        "company_name",
+        "job_role",
+        "registration_fee",
+        "upi_id",
+        "website_url",
+        "whatsapp_number"
+    ],
+    "investment_scam": [
+        "platform_name",
+        "app_download_link",
+        "upi_id",
+        "crypto_wallet",
+        "telegram_group"
+    ],
+    "romance_scam": [
+        "scammer_name",
+        "location",
+        "gift_request_type",
+        "bank_account",
+        "phone_number"
+    ],
+    "kyc_banking": [
+        "bank_name",
+        "phishing_url",
+        "otp_request",
+        "sender_number"
+    ],
+    "courier_customs": [
+        "tracking_id",
+        "courier_company",
+        "fine_amount",
+        "upi_id"
+    ],
+    "default": [
+        "phone_number",
+        "upi_id",
+        "url"
+    ]
+}

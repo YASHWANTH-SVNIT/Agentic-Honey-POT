@@ -1,0 +1,76 @@
+from typing import Dict, Any, List, Optional
+from app.models.session import SessionData
+from app.services.engagement.persona_selector import PersonaSelector
+from app.services.engagement.stage_manager import StageManager
+from app.services.engagement.prompt_builder import PromptBuilder
+from app.services.intelligence.extractors import IntelExtractor
+from app.services.llm.client import get_llm_client
+from config.extraction_targets import get_targets_for_category
+
+class EngagementAgent:
+    
+    @classmethod
+    async def generate_response(cls, session: SessionData, message_text: str, history: List[Dict[str, str]]) -> str:
+        """
+        Orchestrates the Phase 3 Engagement Logic:
+        1. Extract passive intel
+        2. Update stage
+        3. Select persona
+        4. Generate LLM response
+        """
+        
+        # 1. Passive Intelligence Extraction
+        new_intel = IntelExtractor.extract_all(message_text)
+        if new_intel:
+            # Merge into session intel
+            for key, val in new_intel.items():
+                if key not in session.extracted_intel:
+                    session.extracted_intel[key] = []
+                # Add unique values
+                if isinstance(session.extracted_intel[key], list):
+                    current_vals = set(session.extracted_intel[key])
+                    for v in val:
+                        current_vals.add(v)
+                    session.extracted_intel[key] = list(current_vals)
+                else:
+                    # Handle case if it wasn't a list for some reason
+                    session.extracted_intel[key] = val
+        
+        # 2. Update Flow State
+        session.turn_count += 1
+        session.stage = StageManager.determine_stage(session.turn_count)
+        stage_config = StageManager.get_stage_config(session.stage)
+        
+        # 3. Ensure Persona
+        if not session.category:
+            session.category = "default"
+        
+        persona = PersonaSelector.select_persona(session.category)
+        session.persona = persona.get("name") 
+        
+        # 4. Determine Missing Targets
+        all_targets = get_targets_for_category(session.category)
+        missing_targets = [t for t in all_targets if t not in session.extracted_intel]
+        
+        # 5. Build Prompt
+        prompt = PromptBuilder.create_prompt(
+            persona=persona,
+            category=session.category,
+            stage=session.stage,
+            stage_config=stage_config,
+            turn_count=session.turn_count,
+            extracted_intel=session.extracted_intel,
+            missing_targets=missing_targets,
+            history=history
+        )
+        
+        # 6. Call LLM
+        # Use a slightly higher temperature for more natural/emotional variation
+        llm_client = get_llm_client()
+        try:
+            response = llm_client.generate(prompt, temperature=0.8, max_tokens=150)
+            clean_response = response.strip().replace('"', '') # Basic cleanup
+            return clean_response
+        except Exception as e:
+            print(f"Agent Generation Error: {e}")
+            return "I'm not sure I understand. Can you explain that again?"

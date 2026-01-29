@@ -32,17 +32,18 @@ class SessionManager:
         else:
             print("[OK] In-memory session store initialized")
     
+    @staticmethod
+    def get_or_create_session(session_id: str) -> SessionData:
+        manager = get_session_manager()
+        session = manager.get_session(session_id)
+        if not session:
+            session = manager.create_session(session_id)
+        return session
+
     def create_session(self, session_id: str) -> SessionData:
         """Create a new session"""
         session = SessionData(
-            session_id=session_id,
-            status="active",
-            scam_detected=False,
-            turn_count=0,
-            conversation_history=[],
-            extracted_intel={},
-            created_at=datetime.now(),
-            updated_at=datetime.now()
+            sessionId=session_id  # Use alias for initialization
         )
         
         self._save_session(session)
@@ -82,9 +83,6 @@ class SessionManager:
         if self.use_redis and self.redis_client:
             try:
                 session_dict = session.dict()
-                # Convert datetime to string for JSON
-                session_dict['created_at'] = session_dict['created_at'].isoformat()
-                session_dict['updated_at'] = session_dict['updated_at'].isoformat()
                 
                 self.redis_client.setex(
                     f"session:{session.session_id}",

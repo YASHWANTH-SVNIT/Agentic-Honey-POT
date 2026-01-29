@@ -70,7 +70,9 @@ class LLMClient:
             except Exception as e:
                 print(f"[ERROR] Gemini API error: {e}")
         
-        raise Exception("No LLM client available")
+        # Fallback for testing/no keys
+        print("! No LLM client available. Returning mock response.")
+        return "This is a mock response from the Agentic Honey-Pot. (No LLM keys configured)"
     
     def generate_json(self, prompt: str, temperature: float = 0.7) -> Dict[str, Any]:
         """Generate JSON response from LLM"""

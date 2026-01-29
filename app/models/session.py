@@ -5,6 +5,7 @@ from datetime import datetime
 class SessionData(BaseModel):
     """
     Session data model storing conversation state and metadata.
+    Combines Phase 2 (Detection) and Phase 3 (Engagement) fields.
     """
     # Core Identity
     session_id: str = Field(..., alias="sessionId")
@@ -32,7 +33,8 @@ class SessionData(BaseModel):
     red_flags: List[str] = []
     
     # Phase 3: Engagement State
-    stage: str = "monitoring"  # monitoring, engagement, finalization
+    persona: Optional[str] = None
+    stage: str = "monitoring"  # monitoring, engagement, probing, extraction, termination
     
     # Phase 4: Intelligence
     extracted_intel: Dict[str, Any] = {}

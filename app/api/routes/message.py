@@ -29,11 +29,41 @@ async def handle_message(
         action = result.get("action", "ignore")
         decision = result.get("decision")
         
-        # Simple response generation based on detection
+        # Refresh session to check for state changes (e.g., transition to engagement)
+        session = session_manager.get_session(request.sessionId)
+        
+        if session.scam_detected:
+            # Seamless transition: Generate first engagement response immediately
+            print(f"[API] Seamless transition to Engagement: {request.sessionId}")
+            
+            from app.services.engagement.agent import EngagementAgent
+            
+            # Generate response using the selected persona
+            reply_text = await EngagementAgent.generate_response(
+                session=session,
+                message_text=request.message.text,
+                history=request.conversationHistory
+            )
+            
+            # Update session
+            session_manager.update_session(session)
+            
+            return MessageResponse(
+                reply=reply_text,
+                action="engage",
+                metadata={
+                    "scam_detected": True,
+                    "category": session.category,
+                    "stage": session.stage,
+                    "turn": session.turn_count,
+                    "persona": getattr(session, 'persona', None),
+                    "extracted_intel": session.extracted_intel
+                }
+            )
+            
+        # Normal detection response (Probe or Ignore)
         reply = None
-        if action == "engage":
-            reply = "I understand. This sounds very serious. How can I help?"
-        elif action == "probe":
+        if action == "probe":
             reply = "I see. Can you provide more details so I can assist better?"
             
         return MessageResponse(

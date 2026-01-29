@@ -24,3 +24,10 @@ class IntelExtractor:
                 if clean_matches:
                     results[key] = clean_matches
         return results
+
+    def extract(self, text: str) -> Dict[str, Any]:
+        """Alias for extract_all to match test expectations"""
+        return self.extract_all(text)
+
+def get_intelligence_extractor():
+    return IntelExtractor()

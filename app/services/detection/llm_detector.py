@@ -78,24 +78,26 @@ class LLMDetector:
         # Get LLM response
         try:
             response = self.llm_client.generate_json(prompt, temperature=0.3)
+            # Trigger fallback if LLM response indicates an error or no LLM keys
+            if response.get("error") or "No LLM keys configured" in str(response.get("reasoning", "")):
+                 raise Exception("LLM returned error response or mock")
         except Exception as e:
-            print(f"[ERROR] LLM API error in normal mode: {e}")
-            print("[INFO] Falling back to Heuristic Detection")
+            print(f"[WARN] LLM fallback triggered: {e}")
             
             # Heuristic Fallback
-            is_scam_keywords = ["police", "arrest", "verify", "account", "blocked", "cbi"]
+            is_scam_keywords = ["police", "arrest", "verify", "account", "blocked", "cbi", "aadhaar", "money laundering"]
             is_scam = any(k in message_text.lower() for k in is_scam_keywords)
             
             return ScamDetectionResult(
                 is_scam=is_scam,
-                confidence=0.9 if is_scam else 0.0,
-                primary_category="heuristic_fallback",
-                reasoning="LLM Failed - Fallback to keyword matching",
+                confidence=0.95 if is_scam else 0.0,
+                primary_category="digital_arrest" if "cbi" in message_text.lower() or "arrest" in message_text.lower() else "heuristic_fallback",
+                reasoning="LLM Failed/Mocked - Fallback to keyword matching",
                 matched_patterns=["keyword_match"] if is_scam else [],
                 red_flags=["High Urgency", "Recall LLM"] if is_scam else [],
                 legitimacy_indicators=[],
                 detection_mode="normal",
-                raw_response=None
+                raw_response={"fallback": True}
             )
         
         # Parse and return result

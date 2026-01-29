@@ -1,0 +1,22 @@
+{
+  "engagement": {
+    "turns": [1, 3],
+    "goal": "Build trust, show interest, and establish rapport.",
+    "focus": ["contact_method", "basic_process"]
+  },
+  "probing": {
+    "turns": [4, 7],
+    "goal": "Extract payment methods and contact information.",
+    "focus": ["upi_id", "phone", "url", "bank_details"]
+  },
+  "extraction": {
+    "turns": [8, 12],
+    "goal": "Get complete modus operandi and accomplice details.",
+    "focus": ["full_process", "accomplices", "all_accounts"]
+  },
+  "termination": {
+    "turns": [13, 20],
+    "goal": "Graceful exit or stall tactics to waste scammer's time.",
+    "focus": []
+  }
+}

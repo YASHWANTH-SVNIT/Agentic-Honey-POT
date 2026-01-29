@@ -9,10 +9,12 @@ load_dotenv()
 
 # API Configuration
 # API Configuration
-API_KEY = os.getenv("APP_X_API_KEY")
+APP_X_API_KEY = os.getenv("APP_X_API_KEY")
+API_KEY = APP_X_API_KEY
 if not API_KEY:
     print("WARNING: APP_X_API_KEY not set in .env. using unsafe default for dev.")
     API_KEY = "honeypot_secret_key_2024"
+    APP_X_API_KEY = API_KEY
 PORT = int(os.getenv("PORT", "8000"))
 HOST = os.getenv("HOST", "0.0.0.0")
 

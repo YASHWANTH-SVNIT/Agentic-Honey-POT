@@ -300,4 +300,4 @@ d:\Projects\agentic_honey-pot\
 *   **Federated Learning**: Sharing new scam patterns across Honey-Pot nodes.
 
 ---
-**Developed for GUVI HAckathon 2026**
+**Developed for GUVI Hackathon 2026**

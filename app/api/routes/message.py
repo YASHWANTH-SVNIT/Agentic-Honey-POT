@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import List, Dict, Any
 
 router = APIRouter()
+import settings
 
 def map_intel_to_schema(session_intel: Dict[str, Any], red_flags: List[str]) -> ExtractedIntelligence:
     return ExtractedIntelligence(
@@ -30,6 +31,12 @@ async def handle_message(
     session = session_manager.get_session(request.sessionId)
     if not session:
         session = session_manager.create_session(request.sessionId)
+        # Robustness: Recover state if history exists (e.g., server restart)
+        if request.conversationHistory:
+             # Heuristic: Each history item is approx 1 turn. 
+             # Refine this based on who sends what if needed, but simple len check is better than 0.
+             session.turn_count = len(request.conversationHistory) // 2
+             print(f"[API] Restored session state: Turn {session.turn_count} from history")
     
     # Check for Phase 9: Session Closure
     # If session is already closed/reported, stop replying
@@ -126,4 +133,16 @@ async def handle_message(
         action="engage" if session.scam_detected else "ignore"
     )
     
+    
+    # Robustness: Strict Mode Check
+    if settings.STRICT_RESPONSE_MODE:
+        return MessageResponse(
+            status="success",
+            reply=reply_text,
+            scamDetected=session.scam_detected, # Kept as it's useful
+            engagementMetrics=EngagementMetrics(), # Empty
+            extractedIntelligence=ExtractedIntelligence(), # Empty
+            agentNotes=""
+        )
+
     return response

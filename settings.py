@@ -57,3 +57,6 @@ LOG_FILE = os.getenv("LOG_FILE", "honeypot.log")
 
 # Supported Languages
 SUPPORTED_LANGUAGES = ["en", "hi"]
+
+# Response Configuration
+STRICT_RESPONSE_MODE = os.getenv("STRICT_RESPONSE_MODE", "false").lower() == "true"

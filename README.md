@@ -52,20 +52,20 @@ graph TB
             Judge[LLM Scam Judge]
         end
         
-        subgraph "Phase 3: Engagement"
-            Session[Session Manager (Redis/Mem)]
-            Prompt[Prompt Builder]
-            Persona[Persona Engine]
-            LLM[Groq / Llama-3-70b]
+    subgraph "Phase 3: Engagement"
+            Session["Session Manager (Redis/Mem)"]
+            Prompt["Prompt Builder"]
+            Persona["Persona Engine"]
+            LLM["Groq / Llama-3-70b"]
         end
         
         subgraph "Phase 5: Intelligence"
-            Regex[Regex Extractor]
-            IntelDB[Extracted Intel Store]
+            Regex["Regex Extractor"]
+            IntelDB["Extracted Intel Store"]
         end
         
         subgraph "Phase 8: Reporting"
-            Callback[Callback Client]
+            Callback["Callback Client"]
         end
     end
 

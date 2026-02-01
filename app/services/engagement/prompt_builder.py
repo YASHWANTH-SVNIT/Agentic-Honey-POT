@@ -20,6 +20,9 @@ We NEED to extract: {missing_targets}
 CONVERSATION HISTORY:
 {history_text}
 
+!!! LATEST INCOMING MESSAGE YOU MUST RESPOND TO !!!
+"{latest_message}"
+
 INSTRUCTIONS:
 1. Stay 100% in character. Never admit you are an AI or 'honeypot'.
 2. Your goal is to keep the conversation going to achieve the 'Stage Goal'.
@@ -27,6 +30,7 @@ INSTRUCTIONS:
 4. Reply naturally, matching the persona's fear/greed/curiosity level.
 5. If in 'Probing' or 'Extraction' stage, subtly steer towards getting the 'missing_targets'.
 6. Keep response short (1-3 sentences) unless the persona is defined as over-sharing.
+7. CRITICAL: Address the LATEST MESSAGE directly. If they asked for money, stall or ask how to pay. If they asked for bank, act confused or give a fake name. Do NOT just repeat old questions.
 
 GENERATE RESPONSE (Plain text only):
 """
@@ -51,7 +55,8 @@ GENERATE RESPONSE (Plain text only):
         turn_count: int,
         extracted_intel: Dict[str, Any],
         missing_targets: List[str],
-        history: List[Dict[str, str]]
+        history: List[Dict[str, str]],
+        current_message_text: str
     ) -> str:
         
         history_text = cls.build_history_text(history)
@@ -71,5 +76,6 @@ GENERATE RESPONSE (Plain text only):
             stage_style=stage_config.get("response_style"),
             extracted_intel=extracted_str,
             missing_targets=missing_str,
-            history_text=history_text
+            history_text=history_text,
+            latest_message=current_message_text
         )

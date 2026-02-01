@@ -39,6 +39,9 @@ class SessionData(BaseModel):
     # Phase 4: Intelligence
     extracted_intel: Dict[str, Any] = {}
     
+    # Finalization
+    reported_to_guvi: bool = False # Flag to prevent duplicate reports
+    
     class Config:
         populate_by_name = True
         json_encoders = {

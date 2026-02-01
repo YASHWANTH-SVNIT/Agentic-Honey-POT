@@ -21,8 +21,12 @@ HOST = os.getenv("HOST", "0.0.0.0")
 # LLM Configuration
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "groq")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if GROQ_API_KEY:
+    print(f"[DEBUG] Settings loaded GROQ_API_KEY: {GROQ_API_KEY[:4]}...")
+else:
+    print("[ERROR] Settings: GROQ_API_KEY is MISSING or EMPTY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-LLM_MODEL_GROQ = os.getenv("LLM_MODEL_GROQ", "llama-3.1-70b-versatile")
+LLM_MODEL_GROQ = os.getenv("LLM_MODEL_GROQ", "llama-3.3-70b-versatile")
 LLM_MODEL_GEMINI = os.getenv("LLM_MODEL_GEMINI", "gemini-pro")
 
 # Vector Store Configuration

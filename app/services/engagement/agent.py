@@ -76,11 +76,20 @@ class EngagementAgent:
         )
         
         # 6. Call LLM
-        # Use a slightly higher temperature for more natural/emotional variation
+        # Implementation of dynamic temperature: Starts steady, gets more erratic/emotional as turns increase
         llm_client = get_llm_client()
+        
+        # Calculate dynamic temperature
+        if session.turn_count <= 3:
+            temp = 0.7  # Steady and clear
+        elif session.stage == "extraction":
+            temp = 0.95 # High emotional variance/panic
+        else:
+            temp = 0.85 # Natural human variance
+            
         reply_text = ""
         try:
-            response = llm_client.generate(prompt, temperature=0.8, max_tokens=150)
+            response = llm_client.generate(prompt, temperature=temp, max_tokens=150)
             reply_text = response.strip().replace('"', '') # Basic cleanup
         except Exception as e:
             print(f"Agent Generation Error: {e}")
@@ -88,7 +97,7 @@ class EngagementAgent:
             
         # 7. Check for Completion (Termination Phase or High Turn Count)
         # We report if we are deep in the termination phase or hit a turn limit
-        if (session.stage == "termination" and session.turn_count >= 13) or should_stop:
+        if (session.stage == "termination" and session.turn_count >= 20) or should_stop:
              # Only report once
              if not getattr(session, "reported_to_guvi", False):
                  print(f"[Engagement] Conversation ending (Turn {session.turn_count}). Reporting to GUVI...")

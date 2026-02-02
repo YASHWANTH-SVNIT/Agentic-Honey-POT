@@ -9,17 +9,17 @@ class StageManager:
         },
         "probing": {
             "range": (4, 7),
-            "goal": "Express willingness to proceed but 'encountering issues' or needing details to move forward.",
+            "goal": "Express willingness to proceed but 'encountering issues' or needing details to move forward. Act slightly confused about technical steps.",
             "response_style": "Willing but incompetent, asking for specific details to 'help' complete the task."
         },
         "extraction": {
             "range": (8, 12),
-            "goal": "actively request specific actionable details (UPI, URL, Bank Account) under the guise of compliance.",
-            "response_style": "Ready to act, requesting exact steps/details to finalize the 'transaction'."
+            "goal": "Actively request specific actionable details (UPI, URL, Bank Account) while pretending to struggle with the payment app or link.",
+            "response_style": "Ready to act, but reporting 'invalid ID' or 'app crash' to extract alternative data."
         },
         "termination": {
             "range": (13, 100),
-            "goal": "Stall indefinitely, make excuses, or stop responding if extraction is complete.",
+            "goal": "Stall indefinitely, make excuses about 'bank server down' or 'need to go to ATM', or stop responding if extraction is complete.",
             "response_style": "Stalling, technical issues, excuses, delays."
         }
     }

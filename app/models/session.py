@@ -5,7 +5,10 @@ from datetime import datetime
 class SessionData(BaseModel):
     """
     Session data model storing conversation state and metadata.
-    Combines Phase 2 (Detection) and Phase 3 (Engagement) fields.
+    
+    Changes from original:
+    - Removed: detection_mode field (no strict mode)
+    - Simplified: Only normal mode exists now
     """
     # Core Identity
     session_id: str = Field(..., alias="sessionId")
@@ -20,8 +23,7 @@ class SessionData(BaseModel):
     # Phase 2: Detection Metadata
     scam_detected: bool = False
     
-    # Detection details (Optional until detection happens)
-    detection_mode: Optional[str] = None  # 'normal' or 'strict'
+    # Detection details
     detected_language: Optional[str] = None
     language_confidence: Optional[float] = None
     
@@ -36,11 +38,11 @@ class SessionData(BaseModel):
     persona: Optional[str] = None
     stage: str = "monitoring"  # monitoring, engagement, probing, extraction, termination
     
-    # Phase 4: Intelligence
-    extracted_intel: Dict[str, Any] = {}
+    # Phase 4: Intelligence (AI-extracted)
+    extracted_intel: Dict[str, Any] = Field(default_factory=dict)
     
     # Finalization
-    reported_to_guvi: bool = False # Flag to prevent duplicate reports
+    reported_to_guvi: bool = False
     
     class Config:
         populate_by_name = True

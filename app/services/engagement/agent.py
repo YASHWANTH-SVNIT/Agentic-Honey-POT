@@ -4,42 +4,52 @@ from app.services.engagement.persona_selector import PersonaSelector
 from app.services.engagement.stage_manager import StageManager
 from app.services.engagement.prompt_builder import PromptBuilder
 from app.services.engagement.stop_checker import StopConditionChecker
-from app.services.intelligence.extractors import IntelExtractor
+from app.services.intelligence.investigator import InvestigatorAgent
 from app.services.llm.client import get_llm_client
 from app.services.finalization.guvi_callback import GUVICallbackClient
 from config.extraction_targets import get_targets_for_category
 
 class EngagementAgent:
+    """
+    Orchestrates the engagement phase with:
+    - AI-powered intelligence extraction (no regex)
+    - Casual, varied responses
+    - Anti-repetition system
+    """
     
     @classmethod
     async def generate_response(cls, session: SessionData, message_text: str, history: List[Dict[str, str]]) -> str:
         """
         Orchestrates the Phase 3 Engagement Logic:
-        1. Extract passive intel
+        1. Extract passive intel using AI investigator
         2. Update stage
         3. Select persona
-        4. Generate LLM response
+        4. Generate LLM response (casual, varied)
         5. Check for completion and report to GUVI
         """
         
-        # 1. Passive Intelligence Extraction
-        new_intel = IntelExtractor.extract_all(message_text)
-        if new_intel:
-            # Merge into session intel
-            for key, val in new_intel.items():
-                if key not in session.extracted_intel:
-                    session.extracted_intel[key] = []
-                # Add unique values
-                if isinstance(session.extracted_intel[key], list):
-                    current_vals = set(session.extracted_intel[key])
-                    for v in val:
-                        current_vals.add(v)
-                    session.extracted_intel[key] = list(current_vals)
-                else:
-                    # Handle case if it wasn't a list for some reason
-                    session.extracted_intel[key] = val
+        # ============================================
+        # 1. AI-POWERED INTELLIGENCE EXTRACTION
+        # ============================================
+        print(f"[Agent] Calling AI Investigator for extraction...")
+        investigator_result = await InvestigatorAgent.analyze(
+            text=message_text,
+            conversation_history=history
+        )
         
-        # 2. Update Flow State
+        new_intel = investigator_result.get("intelligence", {})
+        print(f"[Agent] Extracted: {sum(len(v) for v in new_intel.values())} items")
+        
+        if new_intel:
+            # Merge into session intel using AI's merge function
+            session.extracted_intel = InvestigatorAgent.merge_intelligence(
+                existing=session.extracted_intel,
+                new=new_intel
+            )
+        
+        # ============================================
+        # 2. UPDATE FLOW STATE
+        # ============================================
         session.turn_count += 1
         
         # Phase 6 Implementation: Check Stop Conditions
@@ -47,22 +57,28 @@ class EngagementAgent:
         if should_stop:
             session.stage = "termination"
         else:
-             session.stage = StageManager.determine_stage(session.turn_count)
+            session.stage = StageManager.determine_stage(session.turn_count)
              
         stage_config = StageManager.get_stage_config(session.stage)
         
-        # 3. Ensure Persona
+        # ============================================
+        # 3. ENSURE PERSONA
+        # ============================================
         if not session.category:
             session.category = "default"
         
         persona = PersonaSelector.select_persona(session.category)
         session.persona = persona.get("name") 
         
-        # 4. Determine Missing Targets
+        # ============================================
+        # 4. DETERMINE MISSING TARGETS
+        # ============================================
         all_targets = get_targets_for_category(session.category)
         missing_targets = [t for t in all_targets if t not in session.extracted_intel]
         
-        # 5. Build Prompt
+        # ============================================
+        # 5. BUILD PROMPT (with casual language)
+        # ============================================
         prompt = PromptBuilder.create_prompt(
             persona=persona,
             category=session.category,
@@ -75,45 +91,51 @@ class EngagementAgent:
             current_message_text=message_text
         )
         
-        # 6. Call LLM
-        # Implementation of dynamic temperature: Starts steady, gets more erratic/emotional as turns increase
+        # ============================================
+        # 6. CALL LLM (with LOWER temp and STRICT token limit)
+        # ============================================
         llm_client = get_llm_client()
-        
-        # Calculate dynamic temperature
-        if session.turn_count <= 3:
-            temp = 0.7  # Steady and clear
-        elif session.stage == "extraction":
-            temp = 0.95 # High emotional variance/panic
-        else:
-            temp = 0.85 # Natural human variance
-            
         reply_text = ""
         try:
-            response = llm_client.generate(prompt, temperature=temp, max_tokens=150)
-            reply_text = response.strip().replace('"', '') # Basic cleanup
-        except Exception as e:
-            print(f"Agent Generation Error: {e}")
-            reply_text = "I'm not sure I understand. Can you explain that again?"
+            # LOWER temperature + STRICT max_tokens for SHORT responses
+            response = llm_client.generate(prompt, temperature=0.6, max_tokens=80)
+            reply_text = response.strip().replace('"', '')
             
-        # 7. Check for Completion (Termination Phase or High Turn Count)
-        # We report if we are deep in the termination phase or hit a turn limit
-        if (session.stage == "termination" and session.turn_count >= 20) or should_stop:
-             # Only report once
-             if not getattr(session, "reported_to_guvi", False):
-                 print(f"[Engagement] Conversation ending (Turn {session.turn_count}). Reporting to GUVI...")
+            # SAFETY: Truncate if still too long (should not happen)
+            word_count = len(reply_text.split())
+            if word_count > 25:
+                # Force truncate to 20 words
+                words = reply_text.split()[:20]
+                reply_text = " ".join(words) + "..."
+                print(f"[Agent] WARNING: Response truncated from {word_count} to 20 words")
+            
+            print(f"[Agent] Generated reply ({len(reply_text.split())} words): {reply_text[:60]}...")
+            
+        except Exception as e:
+            print(f"[Agent] Generation Error: {e}")
+            # Fallback to simple confused response
+            reply_text = "umm wait im confused"
+            
+        # ============================================
+        # 7. CHECK FOR COMPLETION & REPORT
+        # ============================================
+        if (session.stage == "termination" and session.turn_count >= 13) or should_stop:
+            # Only report once
+            if not getattr(session, "reported_to_guvi", False):
+                print(f"[Agent] Conversation ending (Turn {session.turn_count}). Reporting to GUVI...")
                  
-                 notes = f"Category: {session.category}. Reason: {session.reasoning or 'N/A'}"
+                notes = f"Category: {session.category}. Reason: {session.reasoning or 'N/A'}"
                  
-                 success = await GUVICallbackClient.send_final_result(
-                     session_id=session.session_id,
-                     scam_detected=session.scam_detected,
-                     message_count=session.turn_count * 2,
-                     intel=session.extracted_intel,
-                     red_flags=session.red_flags,
-                     notes=notes
-                 )
+                success = await GUVICallbackClient.send_final_result(
+                    session_id=session.session_id,
+                    scam_detected=session.scam_detected,
+                    message_count=session.turn_count * 2,
+                    intel=session.extracted_intel,
+                    red_flags=session.red_flags,
+                    notes=notes
+                )
                  
-                 if success:
-                     session.reported_to_guvi = True
+                if success:
+                    session.reported_to_guvi = True
         
         return reply_text

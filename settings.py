@@ -4,7 +4,9 @@ Loads environment variables and provides settings
 """
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).parent.absolute()
 load_dotenv()
 
 # API Configuration
@@ -32,7 +34,7 @@ LLM_MODEL_GROQ = os.getenv("LLM_MODEL_GROQ", "llama-3.3-70b-versatile")
 LLM_MODEL_GEMINI = os.getenv("LLM_MODEL_GEMINI", "gemini-1.5-flash")
 
 # Vector Store Configuration
-CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./chroma_db")
+CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", str(PROJECT_ROOT / "chroma_db"))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
 
 # Session Configuration

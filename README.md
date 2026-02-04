@@ -1,7 +1,7 @@
 # 🍯 Agentic Honey-Pot: Advanced AI Scam Defense System
 
 ![Project Status](https://img.shields.io/badge/Status-Completed-success)
-![Version](https://img.shields.io/badge/Version-1.0.0-blue)
+![Version](https://img.shields.io/badge/Version-2.0.0-blue)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green)
 ![LLM](https://img.shields.io/badge/Intelligence-Groq%20%2F%20Llama3-orange)

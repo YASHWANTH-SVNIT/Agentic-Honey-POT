@@ -5,18 +5,7 @@ services:
     region: singapore
     plan: free
     branch: main
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --no-cache-dir -r requirements.txt  # ← Add --no-cache-dir
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: GROQ_API_KEY
-        sync: false
-      - key: APP_X_API_KEY
-        sync: false
-      - key: GUVI_API_KEY
-        sync: false
-      - key: GUVI_CALLBACK_URL
-        value: https://hackathon.guvi.in/api/updateHoneyPotFinalResult
-      - key: LLM_PROVIDER
-        value: groq
-      - key: DETECTION_THRESHOLD
-        value: 0.75
+    healthCheckPath: /api/health  # ← Add health check
+    autoDeploy: true

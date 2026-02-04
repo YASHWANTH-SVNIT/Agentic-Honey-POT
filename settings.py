@@ -16,8 +16,8 @@ if not API_KEY:
     print("WARNING: APP_X_API_KEY not set in .env. Using unsafe default for dev.")
     API_KEY = "honeypot_secret_key_2024"
     APP_X_API_KEY = API_KEY
-PORT = int(os.getenv("PORT", "8000"))
 HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", 8000))
 
 # LLM Configuration
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "groq")

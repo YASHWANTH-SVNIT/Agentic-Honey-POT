@@ -47,4 +47,11 @@ async def startup_event():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host=settings.HOST, port=settings.PORT, reload=False)
+    import settings
+    
+    uvicorn.run(
+        "main:app",
+        host=settings.HOST,      # ← From settings
+        port=settings.PORT,      # ← From settings
+        reload=False
+    )

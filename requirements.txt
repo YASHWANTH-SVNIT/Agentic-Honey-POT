@@ -1,11 +1,18 @@
+# Core Framework
 fastapi
-uvicorn
+uvicorn[standard]
 pydantic
+python-dotenv
+
+# Vector DB & Embeddings
 chromadb
 sentence-transformers
+
+# Language Detection
 langdetect
-redis
-httpx
-python-dotenv
+
+# LLM Provider
 groq
-google-generativeai
+
+# HTTP Client
+httpx

@@ -2,24 +2,42 @@
 __pycache__/
 *.py[cod]
 *$py.class
-.venv
+*.so
+.Python
 venv/
+env/
 ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
 
 # Environment
 .env
 .env.local
-
-# Database
-*.sqlite3
-chroma_db/
-
-# IDEs
-.vscode/
-.idea/
-
-# OS
-.DS_Store
+*.backup
 
 # Logs
 *.log
+
+# Database
+chroma_db/
+*.db
+
+# Testing
+.pytest_cache/
+.coverage
+test_results*.json
+test_results*.txt
+test_output*.txt
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,7 +1,17 @@
+---
+title: Agentic Honey Pot
+emoji: 🍯
+colorFrom: yellow
+colorTo: red
+sdk: docker
+pinned: false
+app_port: 7860
+---
+
 # 🍯 Agentic Honey-Pot: Advanced AI Scam Defense System
 
 ![Project Status](https://img.shields.io/badge/Status-Completed-success)
-![Version](https://img.shields.io/badge/Version-1.0.0-blue)
+![Version](https://img.shields.io/badge/Version-2.0.0-blue)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green)
 ![LLM](https://img.shields.io/badge/Intelligence-Groq%20%2F%20Llama3-orange)
@@ -55,12 +65,13 @@ graph TB
     subgraph "Phase 3: Engagement"
             Session["Session Manager (Redis/Mem)"]
             Prompt["Prompt Builder"]
+            AntiDetect["Anti-Detection Analyzer"]
             Persona["Persona Engine"]
             LLM["Groq / Llama-3-70b"]
         end
         
         subgraph "Phase 5: Intelligence"
-            Regex["Regex Extractor"]
+            Investigator["AI Investigator & Extractor"]
             IntelDB["Extracted Intel Store"]
         end
         
@@ -80,11 +91,15 @@ graph TB
     
     API -->|3. Route| Prompt
     Session -->|State/History| Prompt
+    
+    Session -->|History| AntiDetect
+    AntiDetect -->|Pattern Advice| Prompt
+    
     Prompt -->|Contextual Prompt| LLM
     LLM -->|Reply| API
     
-    API -->|4. Scan Reply| Regex
-    Regex -->|New Data| IntelDB
+    API -->|4. Scan Reply| Investigator
+    Investigator -->|New Data| IntelDB
     
     IntelDB -->|Stop Condition Met| Callback
     Callback -->|Final Report| GUVI
@@ -248,21 +263,22 @@ Every response strictly adheres to the Hackathon schema:
 
 ## 🧪 Simulation & Testing
 
-We provide a robust **CL-based Attack Simulator** to validation the system without waiting for real scammers.
+We provide a robust **Test Suite** to validate the system without waiting for real scammers.
 
-### Interactive CLI Mode
-Act as the scammer and chat with your AI agent in real-time.
+### Full System Check (End-to-End)
+Run the comprehensive master test suite that verifies API, Detection, Intelligence, and Reports:
 ```bash
-python simulate_scam_attack.py
+python test_full_system.py
 ```
 
-### Flow Validation
-1.  **Start Simulation**: Send "This is CBI police."
+### Manual Testing
+You can also manually send requests using cURL or other API tools:
+1.  **Start Simulation**: Send "This is CBI police." via POST /api/message.
 2.  **Observe**:
-    *   Detection Engine triggers (`[Status: DETECTED]`).
+    *   Response contains `scamDetected: true`.
     *   Agent replies with `scared_citizen` persona.
 3.  **Test Extraction**: Send "Pay to upi: badguy@okicici".
-    *   Confirm CLI shows `Intel Extracted: UPI=['badguy@okicici']`.
+    *   Confirm response JSON `extractedIntelligence` contains `badguy@okicici`.
 4.  **Termination**: Continue until session ends and Report is sent.
 
 ---

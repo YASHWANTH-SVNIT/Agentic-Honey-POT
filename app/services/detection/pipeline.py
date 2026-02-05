@@ -1,19 +1,23 @@
 """
-Detection Pipeline Orchestrator (Phase 2 - Complete)
+Detection Pipeline Orchestrator (Phase 2 - Simplified)
 
-Coordintates all detection steps:
-1. Pre-Screening (Phase 2.1)
-2. Language Detection (Phase 2.2)
-3. Language Routing (Phase 2.3)
-4. RAG + LLM Detection (Phase 2.4A/B)
-5. Decision Making (Phase 2.4)
-6. Session Update (Phase 2.5)
+Coordinates all detection steps:
+1. Pre-Screening
+2. Language Detection (English only)
+3. RAG + LLM Detection (normal mode only)
+4. Decision Making (engage/probe/ignore)
+5. Session Update
+
+Changes from original:
+- REMOVED: Strict mode routing
+- SIMPLIFIED: Single detection path
+- FIXED: No detection_mode field in session
 """
 
 from typing import Dict, Any, Optional
 from datetime import datetime
 
-from app.models.schemas import MessageRequest, MessageResponse
+from app.models.schemas import MessageRequest
 from app.models.session import SessionData
 from app.services.session.manager import get_session_manager
 
@@ -21,13 +25,13 @@ from app.services.session.manager import get_session_manager
 from app.services.detection.pre_screen import pre_screen_message
 from app.services.detection.language_detector import detect_and_route
 from app.services.detection.rag_retriever import retrieve_rag_evidence
-from app.services.detection.llm_detector import detect_scam_normal_mode, detect_scam_strict_mode
+from app.services.detection.llm_detector import detect_scam_normal_mode
 from app.services.detection.decision_maker import make_final_decision, FinalDecision
 
 
 class DetectionPipeline:
     """
-    Orchestrates the scam detection workflow.
+    Orchestrates the scam detection workflow (SIMPLIFIED VERSION).
     """
     
     def __init__(self):
@@ -52,57 +56,56 @@ class DetectionPipeline:
         if not session:
             session = self.session_manager.create_session(session_id)
         
-        print(f"\n--- Starting Detection Pipeline for Session: {session_id} ---")
-        print(f"Incoming Message: {message_text[:50]}...")
+        print(f"\n--- Detection Pipeline: {session_id} ---")
+        print(f"Message: {message_text[:50]}...")
         
         # ----------------------------------------------------
-        # Step 2.1: Pre-Screening
+        # Step 1: Pre-Screening (Null/Empty checks)
         # ----------------------------------------------------
         screen_result = pre_screen_message(request)
-        if hasattr(screen_result, 'passed'):  # Handle different return types if any
-             if not screen_result.passed:
-                print(f"[REJECT] Pre-screening rejected: {screen_result.reason}")
-                return {"action": "ignore", "reason": screen_result.reason}
-        elif hasattr(screen_result, 'action') and screen_result.action == "ignore":
-             # Support alternative result structure just in case
-             print(f"[REJECT] Pre-screening rejected: {getattr(screen_result, 'reason', 'unknown')}")
-             return {"action": "ignore", "reason": getattr(screen_result, 'reason', 'unknown')}
+        if not screen_result.passed:
+            print(f"[Pipeline] Pre-screening rejected: {screen_result.reason}")
+            return {"action": "ignore", "reason": screen_result.reason}
         
         # ----------------------------------------------------
-        # Step 2.2 & 2.3: Language Detection & Routing
+        # Step 2: Language Detection (English only)
         # ----------------------------------------------------
-        lang_result = detect_and_route(message_text)
-        print(f"[LANG] Detected Language: {lang_result.language} (Confidence: {lang_result.confidence:.2f})")
-        print(f"[ROUTE] Routing to: {lang_result.mode.upper()} MODE")
+        metadata = request.metadata if hasattr(request, 'metadata') else None
+        lang_result = detect_and_route(message_text, metadata)
+        print(f"[Pipeline] Language: {lang_result.language} (conf: {lang_result.confidence:.2f})")
+        
+        # Reject non-English
+        if not lang_result.supported:
+            print(f"[Pipeline] Language not supported: {lang_result.language}")
+            return {
+                "action": "not_supported", 
+                "reason": f"Language '{lang_result.language}' is not supported. English only."
+            }
+        
+        print(f"[Pipeline] Language supported - proceeding")
         
         # ----------------------------------------------------
-        # Step 2.4: Detection (RAG + LLM)
+        # Step 3: RAG + LLM Detection (Normal mode only)
         # ----------------------------------------------------
-        if lang_result.mode == "normal":
-            # Phase 2.4A: Normal Mode (RAG + LLM)
-            rag_result = retrieve_rag_evidence(message_text)
-            print(f"[RAG] Evidence: {len(rag_result.matches)} matches found")
+        # Retrieve RAG evidence
+        rag_result = retrieve_rag_evidence(message_text)
+        print(f"[Pipeline] RAG: {len(rag_result.matches)} matches found")
+        
+        # Run LLM detection with RAG context
+        detection_result = detect_scam_normal_mode(
+            message_text, rag_result, lang_result.language
+        )
             
-            detection_result = detect_scam_normal_mode(
-                message_text, rag_result, lang_result.language
-            )
-        else:
-            # Phase 2.4B: Strict Mode (LLM-only)
-            print("[INFO] Skipping RAG for Strict Mode")
-            detection_result = detect_scam_strict_mode(
-                message_text, lang_result.language
-            )
-            
-        print(f"[LLM] Judgment: is_scam={detection_result.is_scam}, conf={detection_result.confidence:.2f}")
+        print(f"[Pipeline] LLM: is_scam={detection_result.is_scam}, conf={detection_result.confidence:.2f}")
         
         # ----------------------------------------------------
-        # Step 2.4 (Part 2): Decision Making
+        # Step 4: Decision Making
         # ----------------------------------------------------
         final_decision = make_final_decision(detection_result)
-        print(f"[DECISION] Final Decision: {final_decision.action.upper()}")
+        print(f"[Pipeline] Decision: {final_decision.action.upper()}")
         
         # ----------------------------------------------------
-        # Step 2.5: Update Session & Store Metadata
+        # Step 5: Update Session
         # ----------------------------------------------------
         await self._update_session_with_decision(
             session, 
@@ -132,7 +135,7 @@ class DetectionPipeline:
         message_text: str
     ):
         """
-        Update session with detection results (Phase 2.5).
+        Update session with detection results.
         """
         # Add message to history
         session.conversation_history.append({
@@ -148,8 +151,7 @@ class DetectionPipeline:
             session.stage = "engagement"
             session.updated_at = datetime.now()
             
-            # Store metadata
-            session.detection_mode = decision.detection_mode
+            # Store metadata (NO detection_mode field)
             session.detected_language = lang_result.language
             session.language_confidence = lang_result.confidence
             
@@ -158,7 +160,7 @@ class DetectionPipeline:
             session.reasoning = decision.reasoning
             session.red_flags = decision.red_flags
             
-            print("[SESSION] Session updated with scam indicators")
+            print("[Pipeline] Session updated with scam indicators")
         
         # Save session
         self.session_manager.update_session(session)

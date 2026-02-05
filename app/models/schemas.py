@@ -17,11 +17,24 @@ class EngagementMetrics(BaseModel):
     totalMessagesExchanged: int = 0
 
 class ExtractedIntelligence(BaseModel):
-    bankAccounts: List[str] = []
-    upiIds: List[str] = []
-    phishingLinks: List[str] = []
-    phoneNumbers: List[str] = []
-    suspiciousKeywords: List[str] = []
+    """
+    GUVI-compliant intelligence structure with AI extraction fields.
+    
+    Changes from original:
+    - Added: amounts (monetary values)
+    - Added: bankNames (financial institutions mentioned)
+    - Added: ifscCodes (bank branch codes)
+    """
+    bankAccounts: List[str] = Field(default_factory=list, description="9-18 digit account numbers")
+    upiIds: List[str] = Field(default_factory=list, description="Payment IDs with @ symbol")
+    phishingLinks: List[str] = Field(default_factory=list, description="URLs and domains")
+    phoneNumbers: List[str] = Field(default_factory=list, description="10-digit Indian mobile numbers")
+    suspiciousKeywords: List[str] = Field(default_factory=list, description="Threat words and red flags")
+    
+    # NEW FIELDS (AI Extraction)
+    amounts: List[str] = Field(default_factory=list, description="Monetary amounts mentioned")
+    bankNames: List[str] = Field(default_factory=list, description="Bank names (SBI, HDFC, etc.)")
+    ifscCodes: List[str] = Field(default_factory=list, description="IFSC codes for bank branches")
 
 class MessageResponse(BaseModel):
     status: str = Field(..., description="'success' or 'error'")
@@ -29,5 +42,5 @@ class MessageResponse(BaseModel):
     engagementMetrics: EngagementMetrics
     extractedIntelligence: ExtractedIntelligence
     agentNotes: str = ""
-    reply: Optional[str] = None  # Added to ensure the platform receives the agent's text
-    action: Optional[str] = None # Keeping for internal logic flow if needed, but not strictly required by spec
+    reply: Optional[str] = None
+    action: Optional[str] = None

@@ -10,12 +10,28 @@ router = APIRouter()
 import settings
 
 def map_intel_to_schema(session_intel: Dict[str, Any], red_flags: List[str]) -> ExtractedIntelligence:
+    """
+    Maps AI-extracted intelligence to GUVI schema format.
+    
+    AI Investigator returns:
+    - upiIds, phoneNumbers, bankAccounts, amounts, bankNames, ifscCodes, phishingLinks
+    
+    This function maps them to the ExtractedIntelligence schema.
+    """
     return ExtractedIntelligence(
-        bankAccounts=session_intel.get("bank_account", []),
-        upiIds=session_intel.get("upi_id", []),
-        phishingLinks=session_intel.get("url", []),
-        phoneNumbers=session_intel.get("phone_number", []),
-        suspiciousKeywords=red_flags + session_intel.get("keywords", []) # Combine red flags and extracted keywords
+        # Direct mappings (AI uses same field names)
+        upiIds=session_intel.get("upiIds", []),
+        phoneNumbers=session_intel.get("phoneNumbers", []),
+        bankAccounts=session_intel.get("bankAccounts", []),
+        phishingLinks=session_intel.get("phishingLinks", []),
+        
+        # NEW FIELDS (AI extraction)
+        amounts=session_intel.get("amounts", []),
+        bankNames=session_intel.get("bankNames", []),
+        ifscCodes=session_intel.get("ifscCodes", []),
+        
+        # Combine red flags with any extracted keywords
+        suspiciousKeywords=red_flags + session_intel.get("keywords", [])
     )
 
 @router.post("/message", response_model=MessageResponse)
@@ -33,13 +49,10 @@ async def handle_message(
         session = session_manager.create_session(request.sessionId)
         # Robustness: Recover state if history exists (e.g., server restart)
         if request.conversationHistory:
-             # Heuristic: Each history item is approx 1 turn. 
-             # Refine this based on who sends what if needed, but simple len check is better than 0.
-             session.turn_count = len(request.conversationHistory) // 2
-             print(f"[API] Restored session state: Turn {session.turn_count} from history")
+            session.turn_count = len(request.conversationHistory) // 2
+            print(f"[API] Restored session state: Turn {session.turn_count} from history")
     
     # Check for Phase 9: Session Closure
-    # If session is already closed/reported, stop replying
     if getattr(session, "reported_to_guvi", False):
         print(f"[API] Session {request.sessionId} already reported/closed.")
         duration = int((datetime.now() - session.created_at).total_seconds())
@@ -69,7 +82,7 @@ async def handle_message(
         action = result.get("action", "ignore")
         decision = result.get("decision")
         
-        # Refresh session to check for state changes (e.g., transition to engagement)
+        # Refresh session to check for state changes
         session = session_manager.get_session(request.sessionId)
         
         if session.scam_detected:
@@ -89,9 +102,26 @@ async def handle_message(
             session_manager.update_session(session)
             
         else:
+            # Check for language not supported
+            if action == "not_supported":
+                return MessageResponse(
+                    status="error",
+                    scamDetected=False,
+                    engagementMetrics=EngagementMetrics(
+                        engagementDurationSeconds=0,
+                        totalMessagesExchanged=0
+                    ),
+                    extractedIntelligence=ExtractedIntelligence(),
+                    agentNotes=result.get("reason", "Language not supported"),
+                    reply=None,
+                    action="not_supported"
+                )
             # Normal detection response (Probe or Ignore)
-            if action == "probe":
+            elif action == "probe":
                 reply_text = "I see. Can you provide more details so I can assist better?"
+            else:
+                # IGNORE action - no reply
+                reply_text = None
     
     # 4. PHASE 3: Engagement Pipeline
     else:
@@ -113,12 +143,16 @@ async def handle_message(
     
     # Calculate Metrics
     duration = int((datetime.now() - session.created_at).total_seconds())
-    msg_count = session.turn_count * 2 # Approximation for total messages
+    msg_count = session.turn_count * 2
     
     # Construct Agent Notes
-    notes = f"Category: {session.category}. Stage: {session.stage}. "
-    if session.reasoning:
+    notes = f"Category: {session.category or 'unknown'}. Stage: {session.stage}. "
+    if hasattr(session, 'reasoning') and session.reasoning:
         notes += f"Reasoning: {session.reasoning[:50]}..."
+    
+    # Get extracted intelligence safely
+    extracted_intel = getattr(session, 'extracted_intel', {}) or {}
+    red_flags = getattr(session, 'red_flags', []) or []
         
     response = MessageResponse(
         status="success",
@@ -127,22 +161,10 @@ async def handle_message(
             engagementDurationSeconds=duration,
             totalMessagesExchanged=msg_count
         ),
-        extractedIntelligence=map_intel_to_schema(session.extracted_intel, session.red_flags),
+        extractedIntelligence=map_intel_to_schema(extracted_intel, red_flags),
         agentNotes=notes,
         reply=reply_text,
         action="engage" if session.scam_detected else "ignore"
     )
-    
-    
-    # Robustness: Strict Mode Check
-    if settings.STRICT_RESPONSE_MODE:
-        return MessageResponse(
-            status="success",
-            reply=reply_text,
-            scamDetected=session.scam_detected, # Kept as it's useful
-            engagementMetrics=EngagementMetrics(), # Empty
-            extractedIntelligence=ExtractedIntelligence(), # Empty
-            agentNotes=""
-        )
 
     return response

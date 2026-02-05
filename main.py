@@ -1,8 +1,10 @@
 """
 Agentic Honey-Pot API - Production Ready
 """
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 import settings
 from app.api.routes import message, health
 
@@ -26,6 +28,21 @@ app.add_middleware(
 # Routes
 app.include_router(health.router, prefix="/api", tags=["Health"])
 app.include_router(message.router, prefix="/api", tags=["Message"])
+
+# Validation Error Handler - Log exact details
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    print("=" * 60)
+    print("[VALIDATION ERROR] 422 Unprocessable Entity")
+    print(f"[VALIDATION ERROR] URL: {request.url}")
+    print(f"[VALIDATION ERROR] Body: {await request.body()}")
+    for error in exc.errors():
+        print(f"[VALIDATION ERROR] Field: {error.get('loc')} - {error.get('msg')}")
+    print("=" * 60)
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()}
+    )
 
 @app.on_event("startup")
 async def startup_event():

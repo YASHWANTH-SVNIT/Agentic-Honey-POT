@@ -39,6 +39,10 @@ async def handle_message(
     request: MessageRequest,
     api_key: str = Depends(get_api_key)
 ):
+    # DEBUG: Log what we received
+    print(f"[DEBUG] Received request - sessionId: {request.sessionId}")
+    print(f"[DEBUG] Message: {request.message}")
+    print(f"[DEBUG] History length: {len(request.conversationHistory) if request.conversationHistory else 0}")
     # 1. Initialize services
     session_manager = get_session_manager()
     pipeline = get_detection_pipeline()

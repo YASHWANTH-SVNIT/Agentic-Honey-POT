@@ -1,3 +1,13 @@
+---
+title: Agentic Honey Pot
+emoji: 🍯
+colorFrom: yellow
+colorTo: orange
+sdk: docker
+pinned: false
+app_port: 7860
+---
+
 # 🍯 Agentic Honey-Pot: Advanced AI Scam Defense System
 
 ![Project Status](https://img.shields.io/badge/Status-Completed-success)

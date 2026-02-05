@@ -43,6 +43,9 @@ EXTRACTION CATEGORIES:
 7. **phishingLinks**: URLs or domains
    Formats: https://site.com, www.site.com, bit.ly/xyz
 
+8. **emailIds**: Email addresses mentioned
+   Format: name@domain.com (e.g., hr@company.com, support@gmail.com)
+
 DISAMBIGUATION RULES:
 - If number with "call/contact/message" → phoneNumber
 - If number with "account/transfer/pay" → bankAccount  
@@ -58,7 +61,8 @@ OUTPUT FORMAT (JSON ONLY):
         "amounts": [],
         "bankNames": [],
         "ifscCodes": [],
-        "phishingLinks": []
+        "phishingLinks": [],
+        "emailIds": []
     },
     "agent_notes": "Brief summary of scammer request",
     "confidence": 0.0-1.0
@@ -174,7 +178,7 @@ Extract all intelligence and return ONLY the JSON format specified above."""
         
         # Ensure all expected keys exist
         required_keys = ["upiIds", "phoneNumbers", "bankAccounts", "amounts", 
-                        "bankNames", "ifscCodes", "phishingLinks"]
+                        "bankNames", "ifscCodes", "phishingLinks", "emailIds"]
         for key in required_keys:
             if key not in intel:
                 intel[key] = []
@@ -232,6 +236,13 @@ Extract all intelligence and return ONLY the JSON format specified above."""
                 validated_links.append(link)
         intel["phishingLinks"] = validated_links
         
+        # Validate email addresses
+        validated_emails = []
+        for email in intel["emailIds"]:
+            if re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                 validated_emails.append(email)
+        intel["emailIds"] = validated_emails
+        
         # Update result
         result["intelligence"] = intel
         
@@ -266,7 +277,8 @@ Extract all intelligence and return ONLY the JSON format specified above."""
                 "amounts": [],
                 "bankNames": [],
                 "ifscCodes": [],
-                "phishingLinks": []
+                "phishingLinks": [],
+                "emailIds": []
             },
             "agent_notes": reason,
             "confidence": 0.0
@@ -282,13 +294,13 @@ Extract all intelligence and return ONLY the JSON format specified above."""
         
         # Ensure all keys exist in merged
         for key in ["upiIds", "phoneNumbers", "bankAccounts", "amounts", 
-                   "bankNames", "ifscCodes", "phishingLinks"]:
+                   "bankNames", "ifscCodes", "phishingLinks", "emailIds"]:
             if key not in merged:
                 merged[key] = []
         
         # Merge each category
         for key in ["upiIds", "phoneNumbers", "bankAccounts", "amounts", 
-                   "bankNames", "ifscCodes", "phishingLinks"]:
+                   "bankNames", "ifscCodes", "phishingLinks", "emailIds"]:
             # Combine both lists
             combined = merged.get(key, []) + new.get(key, [])
             # Remove duplicates while preserving order

@@ -20,13 +20,13 @@ class GUVICallbackClient:
         Sends the mandatory final result to the GUVI evaluation endpoint.
         """
         
-        # Map intel to required format
+        # Map intel to required format (using camelCase keys from AI extractor)
         formatted_intel = {
-            "bankAccounts": intel.get("bank_account", []),
-            "upiIds": intel.get("upi_id", []),
-            "phishingLinks": intel.get("url", []),
-            "phoneNumbers": intel.get("phone_number", []),
-            "suspiciousKeywords": red_flags + intel.get("keywords", [])
+            "bankAccounts": intel.get("bankAccounts", []),
+            "upiIds": intel.get("upiIds", []),
+            "phishingLinks": intel.get("phishingLinks", []),
+            "phoneNumbers": intel.get("phoneNumbers", []),
+            "suspiciousKeywords": red_flags + intel.get("suspiciousKeywords", [])
         }
         
         payload = {

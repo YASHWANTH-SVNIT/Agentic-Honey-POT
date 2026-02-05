@@ -3,14 +3,18 @@ from typing import List, Optional, Dict, Any
 
 class Message(BaseModel):
     sender: str = "user"  # Default if missing
-    text: str
+    text: str = ""  # Default if missing
     timestamp: Optional[str] = None
 
 class MessageRequest(BaseModel):
     sessionId: str
     message: Message
-    conversationHistory: List[Dict[str, str]] = []
+    conversationHistory: Optional[List[Dict[str, Any]]] = None  # Allow None
     metadata: Optional[Dict[str, Any]] = None
+    
+    @validator('conversationHistory', pre=True, always=True)
+    def default_history(cls, v):
+        return v or []
     
     @validator('message', pre=True)
     def parse_message(cls, v):

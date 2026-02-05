@@ -1,8 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Dict, Any
 
 class Message(BaseModel):
-    sender: str
+    sender: str = "user"  # Default if missing
     text: str
     timestamp: Optional[str] = None
 
@@ -11,6 +11,16 @@ class MessageRequest(BaseModel):
     message: Message
     conversationHistory: List[Dict[str, str]] = []
     metadata: Optional[Dict[str, Any]] = None
+    
+    @validator('message', pre=True)
+    def parse_message(cls, v):
+        # If message is just a string, convert to object
+        if isinstance(v, str):
+            return {"text": v, "sender": "user"}
+        # If it's a dict but missing sender, add it
+        if isinstance(v, dict) and 'sender' not in v:
+            v['sender'] = 'user'
+        return v
 
 class EngagementMetrics(BaseModel):
     engagementDurationSeconds: int = 0

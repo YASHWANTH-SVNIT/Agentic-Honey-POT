@@ -7,10 +7,14 @@ class Message(BaseModel):
     timestamp: Optional[Any] = None  # Accept string OR number (Unix timestamp)
 
 class MessageRequest(BaseModel):
-    sessionId: str
+    sessionId: Any  # Accept any type, convert to string
     message: Message
     conversationHistory: Optional[List[Dict[str, Any]]] = None  # Allow None
     metadata: Optional[Dict[str, Any]] = None
+    
+    @validator('sessionId', pre=True, always=True)
+    def coerce_session_id(cls, v):
+        return str(v) if v is not None else "unknown-session"
     
     @validator('conversationHistory', pre=True, always=True)
     def default_history(cls, v):
@@ -18,12 +22,18 @@ class MessageRequest(BaseModel):
     
     @validator('message', pre=True)
     def parse_message(cls, v):
+        # If message is None or empty, create default
+        if v is None:
+            return {"text": "", "sender": "user"}
         # If message is just a string, convert to object
         if isinstance(v, str):
             return {"text": v, "sender": "user"}
-        # If it's a dict but missing sender, add it
-        if isinstance(v, dict) and 'sender' not in v:
-            v['sender'] = 'user'
+        # If it's a dict but missing fields, add defaults
+        if isinstance(v, dict):
+            if 'sender' not in v:
+                v['sender'] = 'user'
+            if 'text' not in v:
+                v['text'] = ''
         return v
 
 class EngagementMetrics(BaseModel):

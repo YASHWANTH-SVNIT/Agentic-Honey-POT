@@ -3,6 +3,7 @@ from app.models.schemas import MessageRequest, MessageResponse, EngagementMetric
 from app.api.dependencies import get_api_key
 from app.services.session.manager import get_session_manager
 from app.services.detection.pipeline import get_detection_pipeline
+from app.utils.session_logger import SessionLogger
 from datetime import datetime
 from typing import List, Dict, Any
 
@@ -169,6 +170,17 @@ async def handle_message(
         agentNotes=notes,
         reply=reply_text,
         action="engage" if session.scam_detected else "ignore"
+    )
+    
+    # Log this turn to session file for evaluation tracking
+    SessionLogger.log_turn(
+        session_id=request.sessionId,
+        scammer_message=request.message.text,
+        honeypot_reply=reply_text,
+        scam_detected=session.scam_detected,
+        intelligence=extracted_intel,
+        action=response.action,
+        notes=notes
     )
 
     return response

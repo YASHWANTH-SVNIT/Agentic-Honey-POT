@@ -154,10 +154,12 @@ class EngagementAgent:
         
         try:
             # Higher max_tokens for natural length, moderate temperature for creativity + coherence
+            # NOTE: Timeout is 25s to leave 5s buffer for GUVI's 30s max requirement
             response = llm_client.generate(
                 prompt, 
                 temperature=0.7,  # Balanced creativity
-                max_tokens=150   # Allow longer natural responses
+                max_tokens=150,   # Allow longer natural responses
+                timeout=25.0      # 25s timeout (GUVI requires <30s response)
             )
             
             # Clean up response

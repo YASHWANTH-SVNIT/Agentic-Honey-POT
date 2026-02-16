@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 import settings
-from app.api.routes import message, health
+from app.api.routes import message, health, test_cases
 
 app = FastAPI(
     title="Agentic Honey-Pot API",
@@ -28,6 +28,7 @@ app.add_middleware(
 # Routes
 app.include_router(health.router, prefix="/api", tags=["Health"])
 app.include_router(message.router, prefix="/api", tags=["Message"])
+app.include_router(test_cases.router, prefix="/api", tags=["Test Cases"])
 
 # Validation Error Handler - Log exact details
 @app.exception_handler(RequestValidationError)

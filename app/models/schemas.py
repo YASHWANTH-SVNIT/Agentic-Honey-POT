@@ -5,6 +5,15 @@ class Message(BaseModel):
     sender: str = "user"  # Default if missing
     text: str = ""  # Default if missing
     timestamp: Optional[Any] = None  # Accept string OR number (epoch ms)
+    
+    @validator('timestamp', pre=True, always=True)
+    def convert_timestamp(cls, v):
+        """Auto-convert numeric timestamps to strings"""
+        if v is None:
+            return None
+        if isinstance(v, (int, float)):
+            return str(int(v))  # Convert epoch ms to string
+        return str(v)  # Ensure it's a string
 
 class MessageRequest(BaseModel):
     sessionId: str

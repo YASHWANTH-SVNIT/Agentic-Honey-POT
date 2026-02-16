@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 class Message(BaseModel):
     sender: str = "user"  # Default if missing
     text: str = ""  # Default if missing
-    timestamp: Optional[str] = None
+    timestamp: Optional[Any] = None  # Accept string OR number (epoch ms)
 
 class MessageRequest(BaseModel):
     sessionId: str

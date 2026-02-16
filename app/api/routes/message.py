@@ -3,7 +3,6 @@ from app.models.schemas import MessageRequest, MessageResponse, EngagementMetric
 from app.api.dependencies import get_api_key
 from app.services.session.manager import get_session_manager
 from app.services.detection.pipeline import get_detection_pipeline
-from app.utils.session_logger import SessionLogger
 from datetime import datetime
 from typing import List, Dict, Any
 
@@ -30,6 +29,7 @@ def map_intel_to_schema(session_intel: Dict[str, Any], red_flags: List[str]) -> 
         amounts=session_intel.get("amounts", []),
         bankNames=session_intel.get("bankNames", []),
         ifscCodes=session_intel.get("ifscCodes", []),
+        emailAddresses=session_intel.get("emailIds", []),
         
         # Combine red flags with any extracted keywords
         suspiciousKeywords=red_flags + session_intel.get("keywords", [])
@@ -40,10 +40,6 @@ async def handle_message(
     request: MessageRequest,
     api_key: str = Depends(get_api_key)
 ):
-    # DEBUG: Log what we received
-    print(f"[DEBUG] Received request - sessionId: {request.sessionId}")
-    print(f"[DEBUG] Message: {request.message}")
-    print(f"[DEBUG] History length: {len(request.conversationHistory) if request.conversationHistory else 0}")
     # 1. Initialize services
     session_manager = get_session_manager()
     pipeline = get_detection_pipeline()
@@ -170,17 +166,6 @@ async def handle_message(
         agentNotes=notes,
         reply=reply_text,
         action="engage" if session.scam_detected else "ignore"
-    )
-    
-    # Log this turn to session file for evaluation tracking
-    SessionLogger.log_turn(
-        session_id=request.sessionId,
-        scammer_message=request.message.text,
-        honeypot_reply=reply_text,
-        scam_detected=session.scam_detected,
-        intelligence=extracted_intel,
-        action=response.action,
-        notes=notes
     )
 
     return response

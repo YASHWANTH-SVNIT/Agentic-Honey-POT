@@ -7,53 +7,31 @@ class ReportBuilder:
     @staticmethod
     def build_final_report(session: SessionData) -> Dict[str, Any]:
         """
-        Assembles a comprehensive final intelligence report for the session.
-        Matches the rich Phase 7 documentation format.
+        Assembles final intelligence report matching evaluation spec exactly.
+        Returns only required fields as per evaluation criteria.
         """
         
         # Calculate durations
         duration_seconds = int((datetime.now() - session.created_at).total_seconds())
+        total_messages = session.turn_count * 2
         
-        # Assemble Report
+        # Assemble Report - EXACT evaluation format
         report = {
             "sessionId": session.session_id,
             "scamDetected": session.scam_detected,
-            "scamCategory": session.category,
-            "scamType": session.scam_type,
-            "detectionConfidence": session.confidence,
-            "detectionMode": session.detection_mode or "N/A",
-            "detectedLanguage": session.detected_language or "en",
-            
-            "usageMetrics": {
-                "totalMessagesExchanged": session.turn_count * 2,
-                "conversationDurationSeconds": duration_seconds
-            },
-            
+            "totalMessagesExchanged": total_messages,
+            "engagementDurationSeconds": duration_seconds,
             "extractedIntelligence": {
-                "bankAccounts": session.extracted_intel.get("bank_account", []),
-                "upiIds": session.extracted_intel.get("upi_id", []),
-                "phishingLinks": session.extracted_intel.get("url", []),
-                "phoneNumbers": session.extracted_intel.get("phone_number", []),
-                "suspiciousKeywords": session.extracted_intel.get("keywords", []),
-                "videoCallPlatforms": session.extracted_intel.get("video_platform", []),
-                "meetingIds": session.extracted_intel.get("meeting_id", []),
-                "caseNumbers": session.extracted_intel.get("case_number", []),
-                "impersonatedAuthorities": session.extracted_intel.get("impersonated_authority", []),
-                "fakeOfficerNames": session.extracted_intel.get("officer_name", [])
+                "phoneNumbers": session.extracted_intel.get("phoneNumbers", []) or session.extracted_intel.get("phone_number", []),
+                "bankAccounts": session.extracted_intel.get("bankAccounts", []) or session.extracted_intel.get("bank_account", []),
+                "upiIds": session.extracted_intel.get("upiIds", []) or session.extracted_intel.get("upi_id", []),
+                "phishingLinks": session.extracted_intel.get("phishingLinks", []) or session.extracted_intel.get("url", []),
+                "emailAddresses": session.extracted_intel.get("emailAddresses", []) or session.extracted_intel.get("emailIds", []),
+                "amounts": session.extracted_intel.get("amounts", []),
+                "bankNames": session.extracted_intel.get("bankNames", []),
+                "ifscCodes": session.extracted_intel.get("ifscCodes", [])
             },
-            
-            "conversationAnalysis": {
-                "redFlags": session.red_flags,
-                # Tactics could be inferred or added to session model later
-                "tacticsUsed": ["Urgency", "Threats"] if session.scam_detected else [] 
-            },
-            
-            "agentPerformance": {
-                "personaUsed": session.persona,
-                "stagesCompleted": getattr(session, "completed_stages", []) 
-            },
-            
-            "agentNotes": f"Category: {session.category}. Reasoning: {session.reasoning}"
+            "agentNotes": f"Category: {session.category}. Type: {session.scam_type}. Reasoning: {session.reasoning or 'Scam detected and engaged'}"
         }
         
         return report

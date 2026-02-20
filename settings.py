@@ -51,7 +51,7 @@ DETECTION_THRESHOLD = float(os.getenv("DETECTION_THRESHOLD", "0.75"))  # High co
 PROBE_THRESHOLD = float(os.getenv("PROBE_THRESHOLD", "0.55"))  # Medium confidence to probe
 
 # Engagement Configuration
-MAX_TURNS = int(os.getenv("MAX_TURNS", "20"))
+MAX_TURNS = int(os.getenv("MAX_TURNS", "10"))
 MIN_INTELLIGENCE_TURNS = int(os.getenv("MIN_INTELLIGENCE_TURNS", "8"))
 
 # Language Support (SIMPLIFIED - ENGLISH ONLY)

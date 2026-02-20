@@ -47,7 +47,7 @@ class VectorStore:
         ST = get_sentence_transformer()
         self.embedding_model = ST(settings.EMBEDDING_MODEL, device='cpu')
         self._model_loaded = True
-        print("[VectorStore] ✅ Model loaded")
+        print("[VectorStore] Model loaded OK")
     
     def embed_text(self, text: str) -> List[float]:
         self._ensure_model_loaded()

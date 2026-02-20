@@ -1,33 +1,51 @@
+"""
+Stop Condition Checker - Determines when to end conversations
+
+Generic implementation that doesn't depend on category-specific targets.
+"""
 from typing import Dict, Any, List
 from app.models.session import SessionData
-from app.services.engagement.stage_manager import StageManager
-from config.extraction_targets import get_targets_for_category
+from app.services.engagement.goal_tracker import ExtractionGoalTracker
+
 
 class StopConditionChecker:
-    
+
     @staticmethod
     def should_stop(session: SessionData) -> bool:
         """
         Determines if the conversation should end based on:
-        1. Turn count limit (Phase 6.2)
-        2. Intelligence objectives met (Phase 6.1)
+        1. Turn count limit
+        2. Sufficient intelligence gathered
         """
-        
-        # 1. Maximum Turns Reached
+
+        # 1. Maximum Turns Reached (hard limit)
         if session.turn_count >= 15:
             print(f"[StopCheck] Max turns reached ({session.turn_count})")
             return True
-            
-        # 2. Intelligence Objectives Met
-        # Check if we have extracted ALL critical targets for this category
-        targets = get_targets_for_category(session.category)
-        if targets:
-            extracted_keys = session.extracted_intel.keys()
-            missing = [t for t in targets if t not in extracted_keys]
-            
-            # If we turn count is at least 8 AND we have all targets, we can stop
-            if not missing and session.turn_count >= 8:
-                 print(f"[StopCheck] All intelligence targets met: {targets}")
-                 return True
-                 
+
+        # 2. Check extraction progress
+        progress = ExtractionGoalTracker.get_extraction_progress(
+            extracted=session.extracted_intel,
+            category=session.category
+        )
+
+        # If we have at least 8 turns AND extracted 4+ different intel types, we can stop
+        if session.turn_count >= 8 and progress["extracted_count"] >= 4:
+            print(f"[StopCheck] Good extraction progress: {progress['extracted_count']} types extracted")
+            return True
+
+        # 3. If we've extracted payment info (UPI/bank) + contact info, that's usually enough
+        extracted = session.extracted_intel
+        has_payment = bool(extracted.get("upiIds") or extracted.get("bankAccounts"))
+        has_contact = bool(extracted.get("phoneNumbers") or extracted.get("emailAddresses"))
+        has_amount = bool(extracted.get("amounts"))
+
+        if session.turn_count >= 6 and has_payment and has_contact and has_amount:
+            print(f"[StopCheck] Core intelligence gathered (payment + contact + amount)")
+            return True
+
         return False
+
+
+# Backward compatibility alias
+StopChecker = StopConditionChecker

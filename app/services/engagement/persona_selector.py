@@ -117,10 +117,40 @@ class DynamicPersonaGenerator:
     
     @classmethod
     def get_scam_profile(cls, category: str) -> Dict[str, str]:
-        """Get the emotional profile for a scam category"""
+        """
+        Get the emotional profile for a scam category.
+        Falls back to intelligent defaults for unknown categories.
+        """
+        if not category:
+            return cls.SCAM_PROFILES["default"]
+
         # Normalize category name
         category_key = category.lower().replace(" ", "_").replace("-", "_")
-        return cls.SCAM_PROFILES.get(category_key, cls.SCAM_PROFILES["default"])
+
+        # Try exact match first
+        if category_key in cls.SCAM_PROFILES:
+            return cls.SCAM_PROFILES[category_key]
+
+        # Try partial matches for common keywords
+        if any(kw in category_key for kw in ["arrest", "police", "cbi", "crime", "legal"]):
+            return cls.SCAM_PROFILES["digital_arrest"]
+        if any(kw in category_key for kw in ["job", "work", "employment", "recruit"]):
+            return cls.SCAM_PROFILES["job_fraud"]
+        if any(kw in category_key for kw in ["lottery", "prize", "winner", "lucky"]):
+            return cls.SCAM_PROFILES["lottery_prize"]
+        if any(kw in category_key for kw in ["invest", "trading", "crypto", "stock"]):
+            return cls.SCAM_PROFILES["investment"]
+        if any(kw in category_key for kw in ["romance", "love", "dating", "relationship"]):
+            return cls.SCAM_PROFILES["romance_dating"]
+        if any(kw in category_key for kw in ["tech", "support", "microsoft", "computer"]):
+            return cls.SCAM_PROFILES["tech_support"]
+        if any(kw in category_key for kw in ["loan", "credit", "finance"]):
+            return cls.SCAM_PROFILES["loan_fraud"]
+        if any(kw in category_key for kw in ["kyc", "bank", "account", "verify"]):
+            return cls.SCAM_PROFILES["kyc_fraud"]
+
+        # Default fallback
+        return cls.SCAM_PROFILES["default"]
     
     @classmethod
     def generate_adaptive_persona(

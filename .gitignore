@@ -26,12 +26,17 @@ ENV/
 chroma_db/
 *.db
 
-# Testing
+# Documentation & Context (local only)
+context/
+
+# Testing (keep test code, ignore output)
 .pytest_cache/
 .coverage
 test_results*.json
 test_results*.txt
 test_output*.txt
+eval_report.json
+tests/*.json
 *.log
 
 # Temporary files

@@ -1,20 +1,18 @@
 """
 Adaptive Prompt Builder - Builds intelligent, context-aware prompts
-No word limits - natural response length based on context
-Focuses on reacting to actual messages, not generic responses
+Generic implementation that works for ANY scam type without category-specific logic.
 """
 from typing import Dict, List, Any, Optional
 from .scammer_analyzer import ScammerBehaviorAnalyzer
 from .goal_tracker import ExtractionGoalTracker
 from .stage_manager import ConversationStateAnalyzer
 from .persona_selector import DynamicPersonaGenerator
-from .anti_detection import AntiDetectionAnalyzer
 
 
 class AdaptivePromptBuilder:
     """Builds intelligent prompts that adapt to conversation context"""
-    
-    BASE_TEMPLATE = """You are a REAL PERSON (not AI/bot) being contacted by someone.
+
+    BASE_TEMPLATE = """You are a REAL PERSON (not AI/bot) being contacted by someone suspicious.
 REACT NATURALLY to what they just said. Don't be generic.
 
 === YOUR CHARACTER ===
@@ -23,67 +21,75 @@ Current Emotional State: {emotional_state}
 Your Reaction Style: {communication_style}
 
 === WHAT'S HAPPENING ===
-Scam Type: {scam_type}
+Someone is contacting you about: {scam_context}
 Conversation Phase: {conversation_phase}
-Scammer's Behavior: {scammer_behavior}
+Their Behavior: {scammer_behavior}
 
 === RECENT CONVERSATION ===
 {recent_history}
 
-=== WHAT JUST HAPPENED ===
+=== WHAT THEY JUST SAID ===
 "{latest_message}"
 Analysis: {last_exchange_summary}
 
 === YOUR STRATEGIC GOAL (be subtle!) ===
 {extraction_strategy}
 
-=== HOW TO RESPOND ===
-1. REACT to what they JUST SAID - don't ignore their message!
-2. If they gave payment info (UPI, number, account) → Say "Okay, let me try" or similar
-3. If you're "trying" something → Can mention small issues after 1-2 exchanges
-4. If you need more info → Ask naturally, don't be obvious about it
-5. Match your emotional state - {emotion_hint}
-6. Sound human but correct: Use proper grammar and complete sentences. Minimize spelling mistakes. Do not use internet slang (like 'u', 'plz', 'wat').
+=== INVESTIGATIVE GOAL ===
+You want to learn more about who you're talking to. When natural, ask ONE question about:
+- Their identity, name, or credentials
+- Their organization or department
+- Contact details (phone, email, website)
+- Reference numbers, case IDs, order numbers
+- Payment details if they mention money
+Don't repeat questions already asked.
 
-=== FORBIDDEN (don't use these - too robotic) ===
+=== HOW TO RESPOND ===
+1. REACT to what they JUST SAID - acknowledge their message!
+2. If they gave payment info (UPI, account, amount) - say "okay let me try" or ask for clarification
+3. If they're threatening - show fear but ask questions
+4. If they're offering something - show interest and ask for details
+5. Match your emotional state: {emotion_hint}
+6. Sound human: proper grammar, complete sentences, minimal slang
+
+=== FORBIDDEN (don't use these) ===
 {forbidden_phrases}
 
 === RESPOND NOW ===
-Write a natural response. Can be short (5 words) or longer (30 words) depending on what makes sense.
-Don't use quotation marks. Just write your response directly:"""
+Write a natural response (5-30 words). No quotation marks. Just your reply:"""
 
     # Emotion-specific hints for the LLM
     EMOTION_HINTS = {
-        "terrified": "You're SCARED - short panicked responses, ask worried questions, 'plz dont arrest me'",
-        "scared": "You're nervous - worried questions, need reassurance, 'is this real?', 'what should i do?'",
-        "excited": "You're EXCITED - happy, eager, 'omg i won??', 'how do i claim it?!', use exclamation marks",
-        "hopeful": "You're hopeful - grateful, polite, 'thank you sir', 'when can i start?', eager to cooperate",
-        "confused": "You're confused - ask for clarification, 'i dont understand', 'wat?', short confused responses",
-        "trusting": "You trust them - warm, caring, 'ok i believe you', willing to help",
-        "worried": "You're worried - concerned but trying to help, 'ok let me try', 'what if something goes wrong?'"
+        "terrified": "You're SCARED - short panicked responses, worried questions",
+        "scared": "You're nervous - worried, need reassurance, 'is this real?'",
+        "excited": "You're EXCITED - eager, happy, use exclamation marks",
+        "hopeful": "You're hopeful - grateful, polite, eager to cooperate",
+        "confused": "You're confused - ask for clarification, short responses",
+        "trusting": "You trust them - warm, willing to help",
+        "worried": "You're worried - concerned but trying to help"
     }
-    
+
     @classmethod
     def format_history(cls, history: List[Dict[str, str]], max_messages: int = 6) -> str:
         """Format recent conversation history"""
         if not history:
             return "(This is the start of the conversation)"
-        
+
         # Take last N messages
         recent = history[-max_messages:] if len(history) > max_messages else history
-        
+
         formatted = []
         for msg in recent:
             role = msg.get("role", "user")
             content = msg.get("content", "")[:200]  # Truncate long messages
-            
+
             if role == "user":
                 formatted.append(f"THEM: {content}")
             else:
                 formatted.append(f"YOU: {content}")
-        
+
         return "\n".join(formatted)
-    
+
     @classmethod
     def create_prompt(
         cls,
@@ -93,13 +99,13 @@ Don't use quotation marks. Just write your response directly:"""
     ) -> str:
         """
         Build an intelligent, context-aware prompt.
-        This is the main method that orchestrates all the dynamic components.
+        Generic implementation that works for any scam type.
         """
-        
+
         # 1. Analyze scammer's behavior
         scammer_tone = ScammerBehaviorAnalyzer.analyze_tone(latest_message)
         last_exchange_summary = ScammerBehaviorAnalyzer.summarize_last_exchange(history, latest_message)
-        
+
         # 2. Determine conversation state (content-based, not turn-based)
         conversation_state = ConversationStateAnalyzer.determine_state(
             history=history,
@@ -108,93 +114,99 @@ Don't use quotation marks. Just write your response directly:"""
             scammer_tone=scammer_tone
         )
         state_info = ConversationStateAnalyzer.get_state_info(conversation_state)
-        
+
         # 3. Generate adaptive persona traits
         persona_traits = DynamicPersonaGenerator.generate_adaptive_persona(
-            scam_category=session.category or "default",
+            scam_category=session.category or "unknown",
             turn_count=session.turn_count,
             scammer_tone=scammer_tone,
             extracted_intel=session.extracted_intel
         )
-        
-        # 4. Get extraction strategy
+
+        # 4. Get extraction strategy (generic - tries all intel types)
         next_goal = ExtractionGoalTracker.get_next_goal(
             extracted=session.extracted_intel,
-            category=session.category or "default"
+            category=session.category
         )
-        
+
         compliance_style = ScammerBehaviorAnalyzer.get_recommended_compliance(
             scammer_tone, session.turn_count
         )
-        
+
         extraction_strategy = ExtractionGoalTracker.generate_extraction_strategy(
             goal=next_goal,
             scammer_tone=scammer_tone,
             compliance_style=compliance_style
         )
-        
+
         # 5. Get anti-detection instructions
         from .anti_detection import get_analyzer
         analyzer = get_analyzer()
         analysis = analyzer.analyze_history(history)
         avoidance = analyzer.generate_avoidance_instructions(analysis)
-        
+
         # 6. Handle special states
         if ConversationStateAnalyzer.should_have_problems(conversation_state):
             problem = ConversationStateAnalyzer.get_technical_problem(
                 session.turn_count,
                 "bank" if session.extracted_intel.get("bankAccounts") else "upi"
             )
-            extraction_strategy += f"\n\n💡 You can mention this problem: '{problem}' and ask for alternative method."
-        
+            extraction_strategy += f"\n\nYou can mention this problem: '{problem}' to get alternative details."
+
         if ConversationStateAnalyzer.should_stall(conversation_state):
             excuse = ConversationStateAnalyzer.get_stalling_excuse(session.turn_count)
             extraction_strategy = f"STALLING PHASE: Use excuses to delay. Example: '{excuse}'"
-        
+
         # 7. Get emotional hint
         primary_emotion = persona_traits.get("primary_emotion", "confused")
         emotion_hint = cls.EMOTION_HINTS.get(primary_emotion, cls.EMOTION_HINTS["confused"])
-        
+
         # 8. Get emotional state description
         emotional_state = DynamicPersonaGenerator.get_emotional_state_description(persona_traits)
-        
-        # 9. Build the prompt
+
+        # 9. Build generic scam context from reasoning or red flags
+        scam_context = cls._build_scam_context(session)
+
+        # 10. Build the prompt
         prompt = cls.BASE_TEMPLATE.format(
             character_description=persona_traits.get("character_summary", "Confused person trying to understand"),
             emotional_state=emotional_state,
-            communication_style=persona_traits.get("communication_style", "Casual with some typos"),
-            scam_type=cls._get_human_readable_category(session.category),
+            communication_style=persona_traits.get("communication_style", "Casual, human responses"),
+            scam_context=scam_context,
             conversation_phase=f"{conversation_state} - {state_info.get('description', '')}",
             scammer_behavior=f"{scammer_tone.upper()} - {last_exchange_summary}",
             recent_history=cls.format_history(history),
-            latest_message=latest_message[:300],  # Truncate very long messages
+            latest_message=latest_message[:300],
             last_exchange_summary=last_exchange_summary,
             extraction_strategy=extraction_strategy,
             emotion_hint=emotion_hint,
-            forbidden_phrases=avoidance if avoidance else "None - previous responses were good"
+            forbidden_phrases=avoidance if avoidance else "None - vary your responses naturally"
         )
-        
+
         return prompt
-    
+
     @classmethod
-    def _get_human_readable_category(cls, category: Optional[str]) -> str:
-        """Convert internal category to human-readable form"""
-        if not category:
-            return "Unknown situation"
-        
-        mappings = {
-            "digital_arrest": "Someone claiming to be police/CBI threatening arrest",
-            "job_fraud": "Someone offering a job opportunity",
-            "lottery_prize": "Someone saying you won a lottery/prize",
-            "investment": "Someone offering investment opportunity",
-            "romance_dating": "Online romantic interest asking for help",
-            "tech_support": "Someone claiming to be tech support",
-            "loan_fraud": "Someone offering quick loan",
-            "kyc_fraud": "Someone claiming to be from bank about KYC"
-        }
-        
-        category_key = category.lower().replace(" ", "_").replace("-", "_")
-        return mappings.get(category_key, f"Someone contacting about: {category}")
+    def _build_scam_context(cls, session) -> str:
+        """Build a generic scam context description from session data"""
+        parts = []
+
+        # Use reasoning if available
+        if session.reasoning:
+            parts.append(session.reasoning[:100])
+
+        # Use category if available
+        if session.category and session.category != "default":
+            parts.append(f"Appears to be: {session.category}")
+
+        # Use red flags if available
+        if session.red_flags:
+            flags = session.red_flags[:3] if len(session.red_flags) > 3 else session.red_flags
+            parts.append(f"Red flags: {', '.join(flags)}")
+
+        if parts:
+            return " | ".join(parts)
+
+        return "Suspicious contact - someone trying to get money or information from you"
 
 
 # Backward compatibility

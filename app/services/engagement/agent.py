@@ -12,7 +12,7 @@ from app.services.engagement.goal_tracker import ExtractionGoalTracker
 from app.services.engagement.scammer_analyzer import ScammerBehaviorAnalyzer
 from app.services.engagement.stop_checker import StopConditionChecker
 from app.services.intelligence.investigator import InvestigatorAgent
-from app.services.llm.client import get_llm_client
+from app.services.llm.client import get_engagement_llm
 from app.services.finalization.guvi_callback import GUVICallbackClient
 import settings
 
@@ -144,12 +144,12 @@ class EngagementAgent:
                 return {}
 
         async def run_llm_response():
-            """Generate engagement reply"""
+            """Generate engagement reply using dedicated Engagement LLM"""
             try:
-                llm_client = get_llm_client()
+                engagement_llm = get_engagement_llm()
                 # Run sync LLM call in thread pool to allow true parallelism
                 return await asyncio.to_thread(
-                    llm_client.generate,
+                    engagement_llm.generate,
                     prompt,
                     0.7,   # temperature
                     150    # max_tokens
@@ -168,15 +168,17 @@ class EngagementAgent:
         # 9. PROCESS INVESTIGATOR RESULT
         # ============================================
         if investigator_result and not isinstance(investigator_result, Exception):
-            new_intel = investigator_result.get("intelligence", {})
+            # Investigator returns intel directly (not wrapped in "intelligence" key)
+            new_intel = {k: v for k, v in investigator_result.items() if not k.startswith("_")}
             intel_count = sum(len(v) if isinstance(v, list) else 1 for v in new_intel.values() if v)
-            print(f"[Agent] Extracted {intel_count} new items")
-            
-            if new_intel:
-                session.extracted_intel = InvestigatorAgent.merge_intelligence(
+            print(f"[Agent] Extracted {intel_count} new intel items: {[k for k,v in new_intel.items() if v]}")
+
+            if intel_count > 0:
+                session.extracted_intel = InvestigatorAgent.merge_intel(
                     existing=session.extracted_intel,
-                    new=new_intel
+                    new_intel=new_intel
                 )
+                print(f"[Agent] Session intel after merge: {[k for k,v in session.extracted_intel.items() if v]}")
         
         # ============================================
         # 10. PROCESS LLM REPLY

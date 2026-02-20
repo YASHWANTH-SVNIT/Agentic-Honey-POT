@@ -51,12 +51,15 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 # GLOBAL Exception Handler - Prevent 500 crashes
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
     print("=" * 60)
     print(f"[CRITICAL ERROR] Unhandled exception: {type(exc).__name__}")
     print(f"[CRITICAL ERROR] Message: {str(exc)}")
     print(f"[CRITICAL ERROR] URL: {request.url}")
+    print(f"[CRITICAL ERROR] Traceback:")
+    traceback.print_exc()
     print("=" * 60)
-    
+
     # Return a valid response instead of crashing
     return JSONResponse(
         status_code=200,  # Return 200 to not fail evaluation

@@ -1,318 +1,225 @@
 """
-AI-Powered Intelligence Investigator
-Replaces regex-based extraction with context-aware LLM extraction
-No more collisions between phone numbers and bank accounts!
+Investigator Agent — Extracts ALL intelligence from scammer conversations.
+
+The LLM reads the FULL conversation and extracts every piece of suspicious
+or identifying information the scammer has shared — nothing is skipped.
 """
-from typing import Dict, Any, List, Optional
+from typing import Dict, List, Optional, Any
 import json
 import re
-from app.services.llm.client import get_llm_client
+
+from app.services.llm.client import get_extraction_llm
+
 
 class InvestigatorAgent:
     """
-    Specialized AI agent for extracting actionable intelligence from scammer messages.
-    Uses LLM with structured prompts to avoid regex collisions.
+    Reads the entire conversation and extracts all data points the scammer
+    revealed. Uses LLM with a detailed, open-ended extraction prompt.
     """
-    
-    SYSTEM_PROMPT = """You are a cyber intelligence analyst extracting payment and contact information from scammer messages.
 
-EXTRACTION CATEGORIES:
+    SYSTEM_PROMPT = """You are a cyber intelligence analyst reviewing a conversation between a scammer and a victim.
 
-1. **upiIds**: Payment identifiers with @ symbol
-   Format: username@provider (e.g., scammer@paytm, number@ybl)
+YOUR JOB: Extract EVERY piece of identifying or suspicious information the SCAMMER has provided.
+Think like a detective building a case file — capture anything that could identify the scammer
+or prove the fraud: payment details, contact info, credentials, reference numbers, websites, anything.
 
-2. **phoneNumbers**: 10-digit Indian mobile numbers in calling/messaging context
-   Context keywords: "call", "contact", "message", "WhatsApp", "SMS"
-   Disambiguation: If number appears with payment context, it's NOT a phone number
+=== WHAT TO EXTRACT ===
 
-3. **bankAccounts**: 9-18 digit numbers in payment/transfer context
-   Context keywords: "account", "transfer", "deposit", "A/c", "send to"
-   Disambiguation: Use context to distinguish from phone numbers
+Go through the scammer's messages carefully and pull out:
 
-4. **amounts**: Monetary values mentioned
-   Formats: ₹50000, Rs 5000, rupees, thousand, lakh
-   Extract as numeric string only (e.g., "50000")
+1. upiIds
+   Any UPI payment address (contains @ symbol used for sending money in India)
+   UPI IDs end with bank/app handles like: @paytm, @ybl, @okaxis, @sbi, @hdfc, @icici, @okhdfcbank, @phonepe, @gpay
+   e.g. name@paytm, number@ybl, refund@sbi, 9876543210@okaxis
+   IMPORTANT: If someone says "send to xyz@sbi" or "pay to abc@paytm" - that's a UPI ID, not email!
 
-5. **bankNames**: Financial institutions mentioned
-   Examples: SBI, HDFC, ICICI, Paytm, PhonePe, Axis, Kotak, PNB
-   Include abbreviations and full names
+2. phoneNumbers
+   Any mobile/landline number the scammer gives for calls/WhatsApp/contact
+   e.g. +91-9876543210, 9876543210
+   Do NOT include numbers that are clearly amounts or account numbers.
 
-6. **ifscCodes**: Bank branch identifiers
-   Format: 4 letters + "0" + 6 alphanumeric (e.g., SBIN0001234)
+3. bankAccounts
+   Any bank account number the scammer shares for transfer
+   e.g. 12345678901234 (typically 9-18 digits, given with bank name or IFSC)
 
-7. **phishingLinks**: URLs or domains
-   Formats: https://site.com, www.site.com, bit.ly/xyz
+4. bankNames
+   Any bank or payment platform mentioned
+   e.g. SBI, HDFC, ICICI, Paytm, PhonePe, Axis, Kotak
 
-8. **emailIds**: Email addresses mentioned
-   Format: name@domain.com (e.g., hr@company.com, support@gmail.com)
+5. ifscCodes
+   Any IFSC code (format: 4 letters + 0 + 6 alphanumeric)
+   e.g. SBIN0001234, HDFC0004567
 
-DISAMBIGUATION RULES:
-- If number with "call/contact/message" → phoneNumber
-- If number with "account/transfer/pay" → bankAccount  
-- If number has @ symbol → upiId
-- Same number can be BOTH if in different contexts
+6. amounts
+   Any monetary amount mentioned (just the number, no currency symbol)
+   e.g. "5000", "299", "50000"
+   Include even "processing fee", "security deposit", "verification charge" amounts.
 
-OUTPUT FORMAT (JSON ONLY):
+7. phishingLinks
+   Any URL or website link shared
+   e.g. http://fake-bank.xyz, amaz0n-refund.com, bit.ly/scam123
+
+8. emailAddresses
+   Any email address shared (NOT UPI IDs!)
+   Emails have domains like .com, .in, .org, .net, .xyz etc.
+   e.g. support@fakesite.com, hr@company-name.in
+   NOTE: xyz@sbi, abc@paytm are UPI IDs, not emails. Only put real email domains here.
+
+9. caseIds
+   Any reference number, case number, complaint number, FIR number,
+   badge number, docket ID, ticket ID, or alphanumeric code the scammer
+   uses to appear official or legitimate.
+   e.g. CBI/2024/ML/4521, FIR-CRIME-789, KYC-REF-7821, CASE-12345
+   Rule: If it's a code/ID the scammer cites as "proof" → extract here.
+
+10. policyNumbers
+    Any insurance policy number, government scheme number, plan ID,
+    or registration number related to financial products.
+    e.g. POL-12345, LIC/2024/789, PM-SCHEME-001
+
+11. orderNumbers
+    Any order ID, tracking number, shipment number, parcel reference,
+    delivery AWB, or purchase reference code.
+    e.g. ORD-789-2024, TRK-321, AMZ-FAKE-001, shipment #4521
+
+=== HOW TO EXTRACT ===
+
+- Read ALL scammer messages in the conversation carefully
+- Extract from SCAMMER messages only — ignore victim responses
+- If you see a number/ID — ask yourself: what is this person using it for?
+  - Payment → upiId or bankAccount
+  - Contact → phoneNumber
+  - Proof of authority → caseId
+  - Insurance/scheme → policyNumber
+  - Order/delivery → orderNumber
+  - Website → phishingLink
+- Include partial or ambiguous items — lean toward extracting rather than skipping
+- Deduplicate: don't list the same value twice in the same category
+- Amounts: extract the numeric value only (e.g. "5000" not "Rs. 5000")
+
+=== OUTPUT FORMAT ===
+
+Return ONLY valid JSON. No markdown, no explanation, nothing else.
+
 {
     "intelligence": {
         "upiIds": [],
         "phoneNumbers": [],
         "bankAccounts": [],
-        "amounts": [],
         "bankNames": [],
         "ifscCodes": [],
+        "amounts": [],
         "phishingLinks": [],
-        "emailIds": []
+        "emailAddresses": [],
+        "caseIds": [],
+        "policyNumbers": [],
+        "orderNumbers": []
     },
-    "agent_notes": "Brief summary of scammer request",
-    "confidence": 0.0-1.0
+    "agent_notes": "One sentence summary of what the scammer is trying to do",
+    "confidence": 0.95
 }
 
-INSTRUCTIONS:
-- Extract ALL relevant information
-- Use conversation history for context
-- Resolve ambiguities intelligently
-- Return ONLY valid JSON (no markdown, no explanations)
-- Empty arrays [] if category not found
-- Calculate confidence based on extraction clarity"""
+Empty arrays [] for categories with nothing to extract.
+Confidence = how sure you are about the extraction quality (0.0 to 1.0)."""
 
     @classmethod
     async def analyze(cls, text: str, conversation_history: Optional[List[Dict]] = None) -> Dict[str, Any]:
         """
-        Analyzes scammer message to extract actionable intelligence.
-        
-        Args:
-            text: Current scammer message
-            conversation_history: Previous messages for context
-            
-        Returns:
-            Dict with intelligence, agent_notes, and confidence
+        Analyze a message and full conversation to extract all intelligence.
+        Returns structured intel dict.
         """
-        if not text or len(text.strip()) < 3:
-            return cls._get_empty_result("Message too short or empty")
-            
-        try:
-            client = get_llm_client()
-            
-            # Build context from conversation history (last 3 messages)
-            context = ""
-            if conversation_history:
-                recent = conversation_history[-3:]
-                context_lines = []
-                for msg in recent:
-                    role = msg.get('role', 'unknown')
-                    content = msg.get('content', '')
-                    context_lines.append(f"{role}: {content}")
-                context = "CONVERSATION CONTEXT:\n" + "\n".join(context_lines) + "\n\n"
-            
-            # Construct user prompt
-            user_prompt = f"""{context}CURRENT SCAMMER MESSAGE:
-"{text}"
+        extraction_llm = get_extraction_llm()
 
-Extract all intelligence and return ONLY the JSON format specified above."""
-            
-            # Call LLM with low temperature for precision
-            full_prompt = f"{cls.SYSTEM_PROMPT}\n\n{user_prompt}"
-            
-            print(f"[InvestigatorAgent] Analyzing message...")
-            raw_response = client.generate(full_prompt, temperature=0.1, max_tokens=500)
-            print(f"[InvestigatorAgent] LLM Response received")
-            
-            # Parse response
-            result = cls._parse_llm_response(raw_response, text)
-            
-            # Validate and clean
-            result = cls._validate_and_clean(result, text)
-            
-            return result
-            
+        # Build full conversation context for the LLM
+        conversation_context = cls._build_conversation_context(text, conversation_history)
+
+        # Combine system prompt with task prompt
+        prompt = f"""{cls.SYSTEM_PROMPT}
+
+=== CONVERSATION TO ANALYZE ===
+{conversation_context}
+
+=== YOUR TASK ===
+Extract every piece of identifying or suspicious information the scammer has shared.
+Return ONLY valid JSON matching the format specified above. No markdown, no explanation."""
+
+        try:
+            response = extraction_llm.generate_json(prompt, temperature=0.1)
+
+            if response and isinstance(response, dict):
+                intel = response.get("intelligence", {})
+                notes = response.get("agent_notes", "")
+                confidence = response.get("confidence", 0.8)
+
+                # Normalize all values to lists of strings
+                normalized = cls._normalize_intel(intel)
+                print(f"[Investigator] Extracted: {[k for k,v in normalized.items() if v]}")
+                return {**normalized, "_notes": notes, "_confidence": confidence}
+
         except Exception as e:
-            print(f"[InvestigatorAgent] Extraction error: {e}")
-            import traceback
-            traceback.print_exc()
-            return cls._get_empty_result(f"Extraction failed: {str(e)}")
+            print(f"[Investigator] LLM extraction failed: {e}")
 
-    @staticmethod
-    def _parse_llm_response(raw_response: str, original_text: str) -> Dict[str, Any]:
-        """Parse LLM response, handling common formatting issues."""
-        try:
-            # Remove markdown code blocks
-            cleaned = re.sub(r'```(?:json)?\s*', '', raw_response)
-            cleaned = cleaned.strip()
-            
-            # Try to parse
-            data = json.loads(cleaned)
-            
-            # Ensure required structure
-            if "intelligence" not in data:
-                # Try to find JSON object in response
-                json_match = re.search(r'\{[\s\S]*\}', cleaned)
-                if json_match:
-                    data = json.loads(json_match.group())
+        return cls._empty_intel()
+
+    @classmethod
+    def _build_conversation_context(cls, latest_message: str, history: Optional[List[Dict]]) -> str:
+        """Format full conversation for the LLM."""
+        lines = []
+        if history:
+            for msg in history:
+                role = msg.get("role", "user")
+                sender = msg.get("sender", role)
+                content = msg.get("content", "")
+                if "user" in sender or "user" in role:
+                    lines.append(f"SCAMMER: {content}")
                 else:
-                    raise ValueError("Missing 'intelligence' key in response")
-                
-            return data
-            
-        except json.JSONDecodeError as e:
-            print(f"[InvestigatorAgent] JSON parse error: {e}")
-            print(f"[InvestigatorAgent] Raw response: {raw_response[:500]}")
-            
-            # Attempt to extract JSON from malformed response
-            try:
-                json_match = re.search(r'\{[\s\S]*\}', raw_response)
-                if json_match:
-                    return json.loads(json_match.group())
-            except:
-                pass
-                    
-            return InvestigatorAgent._get_empty_result("JSON parsing failed")
+                    lines.append(f"VICTIM: {content}")
 
-    @staticmethod
-    def _validate_and_clean(result: Dict[str, Any], original_text: str) -> Dict[str, Any]:
-        """
-        Validate and clean extracted intelligence.
-        Removes duplicates and performs sanity checks.
-        """
-        intel = result.get("intelligence", {})
-        
-        # Ensure all expected keys exist
-        required_keys = ["upiIds", "phoneNumbers", "bankAccounts", "amounts", 
-                        "bankNames", "ifscCodes", "phishingLinks", "emailIds"]
-        for key in required_keys:
-            if key not in intel:
-                intel[key] = []
-        
-        # Remove duplicates and clean
-        for key in required_keys:
-            if intel[key]:
-                # Remove duplicates while preserving order
-                intel[key] = list(dict.fromkeys(intel[key]))
-                
-                # Clean strings (remove extra whitespace)
-                intel[key] = [str(item).strip() for item in intel[key] if item and str(item).strip()]
-        
-        # Validate UPI IDs (must contain @)
-        intel["upiIds"] = [upi for upi in intel["upiIds"] if "@" in upi]
-        
-        # Validate phone numbers (10 digits starting with 6-9)
-        validated_phones = []
-        for phone in intel["phoneNumbers"]:
-            # Extract digits only
-            digits = re.sub(r'\D', '', phone)
-            if re.match(r'^[6-9]\d{9}$', digits):
-                validated_phones.append(digits)
-        intel["phoneNumbers"] = validated_phones
-        
-        # Validate IFSC codes (4 letters + 0 + 6 alphanumeric)
-        validated_ifsc = []
-        for ifsc in intel["ifscCodes"]:
-            ifsc_upper = ifsc.upper().strip()
-            if re.match(r'^[A-Z]{4}0[A-Z0-9]{6}$', ifsc_upper):
-                validated_ifsc.append(ifsc_upper)
-        intel["ifscCodes"] = validated_ifsc
-        
-        # Validate bank accounts (9-18 digits)
-        validated_accounts = []
-        for acc in intel["bankAccounts"]:
-            digits = re.sub(r'\D', '', acc)
-            if re.match(r'^\d{9,18}$', digits):
-                validated_accounts.append(digits)
-        intel["bankAccounts"] = validated_accounts
-        
-        # Clean amounts (extract numbers only)
-        validated_amounts = []
-        for amt in intel["amounts"]:
-            digits = re.sub(r'[^\d]', '', str(amt))
-            if digits:
-                validated_amounts.append(digits)
-        intel["amounts"] = validated_amounts
-        
-        # Validate URLs (must contain URL indicators)
-        validated_links = []
-        for link in intel["phishingLinks"]:
-            link_lower = link.lower()
-            if any(indicator in link_lower for indicator in ['http', 'www.', '.com', '.in', '.org', 'bit.ly', '.co']):
-                validated_links.append(link)
-        intel["phishingLinks"] = validated_links
-        
-        # Validate email addresses
-        validated_emails = []
-        for email in intel["emailIds"]:
-            if re.match(r"[^@]+@[^@]+\.[^@]+", email):
-                 validated_emails.append(email)
-        intel["emailIds"] = validated_emails
-        
-        # Update result
-        result["intelligence"] = intel
-        
-        # Ensure agent_notes exists
-        if "agent_notes" not in result or not result["agent_notes"]:
-            # Generate notes based on extracted data
-            notes_parts = []
-            if intel["upiIds"]:
-                notes_parts.append(f"UPI payment requested")
-            if intel["bankAccounts"]:
-                notes_parts.append(f"Bank transfer requested")
-            if intel["amounts"]:
-                notes_parts.append(f"Amount: ₹{intel['amounts'][0]}")
-            result["agent_notes"] = ". ".join(notes_parts) if notes_parts else "Intelligence extraction attempted"
-            
-        # Ensure confidence exists
-        if "confidence" not in result or not isinstance(result.get("confidence"), (int, float)):
-            # Calculate confidence based on extraction success
-            found_items = sum(1 for v in intel.values() if v)
-            result["confidence"] = min(0.95, 0.3 + (found_items * 0.1))
-        
+        lines.append(f"SCAMMER: {latest_message}")
+        return "\n".join(lines) if lines else f"SCAMMER: {latest_message}"
+
+    @classmethod
+    def _normalize_intel(cls, intel: Dict) -> Dict[str, List[str]]:
+        """Ensure all fields are lists of clean strings."""
+        fields = [
+            "upiIds", "phoneNumbers", "bankAccounts", "bankNames",
+            "ifscCodes", "amounts", "phishingLinks", "emailAddresses",
+            "caseIds", "policyNumbers", "orderNumbers"
+        ]
+        result = {}
+        for field in fields:
+            raw = intel.get(field, [])
+            if isinstance(raw, list):
+                result[field] = [str(v).strip() for v in raw if v]
+            elif raw:
+                result[field] = [str(raw).strip()]
+            else:
+                result[field] = []
         return result
 
-    @staticmethod
-    def _get_empty_result(reason: str = "No intelligence found") -> Dict[str, Any]:
-        """Return empty result structure."""
+    @classmethod
+    def _empty_intel(cls) -> Dict[str, List]:
         return {
-            "intelligence": {
-                "upiIds": [],
-                "phoneNumbers": [],
-                "bankAccounts": [],
-                "amounts": [],
-                "bankNames": [],
-                "ifscCodes": [],
-                "phishingLinks": [],
-                "emailIds": []
-            },
-            "agent_notes": reason,
-            "confidence": 0.0
+            "upiIds": [], "phoneNumbers": [], "bankAccounts": [],
+            "bankNames": [], "ifscCodes": [], "amounts": [],
+            "phishingLinks": [], "emailAddresses": [],
+            "caseIds": [], "policyNumbers": [], "orderNumbers": [],
+            "_notes": "", "_confidence": 0.0
         }
 
-    @staticmethod
-    def merge_intelligence(existing: Dict, new: Dict) -> Dict:
-        """
-        Merge new intelligence into existing session intelligence.
-        Removes duplicates across the entire session.
-        """
-        merged = existing.copy() if existing else {}
-        
-        # Ensure all keys exist in merged
-        for key in ["upiIds", "phoneNumbers", "bankAccounts", "amounts", 
-                   "bankNames", "ifscCodes", "phishingLinks", "emailIds"]:
-            if key not in merged:
-                merged[key] = []
-        
-        # Merge each category
-        for key in ["upiIds", "phoneNumbers", "bankAccounts", "amounts", 
-                   "bankNames", "ifscCodes", "phishingLinks", "emailIds"]:
-            # Combine both lists
-            combined = merged.get(key, []) + new.get(key, [])
-            # Remove duplicates while preserving order
-            merged[key] = list(dict.fromkeys(combined))
-        
+    @classmethod
+    def merge_intel(cls, existing: Dict, new_intel: Dict) -> Dict:
+        """Merge new intel into existing, deduplicating all lists."""
+        merged = dict(existing)
+        list_fields = [
+            "upiIds", "phoneNumbers", "bankAccounts", "bankNames",
+            "ifscCodes", "amounts", "phishingLinks", "emailAddresses",
+            "caseIds", "policyNumbers", "orderNumbers"
+        ]
+        for field in list_fields:
+            existing_vals = set(merged.get(field, []))
+            new_vals = new_intel.get(field, [])
+            for v in new_vals:
+                existing_vals.add(v)
+            merged[field] = list(existing_vals)
         return merged
-
-
-# ============================================================
-# Convenience Functions
-# ============================================================
-
-def get_investigator() -> InvestigatorAgent:
-    """Get investigator class for use in other modules."""
-    return InvestigatorAgent

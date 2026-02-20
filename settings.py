@@ -19,19 +19,30 @@ if not API_KEY:
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", 8000))
 
-# LLM Configuration
+# LLM Configuration - Separate keys for Engagement vs Extraction
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "groq")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+# Separate Groq keys for isolation
+GROQ_API_KEY_ENGAGEMENT = os.getenv("GROQ_API_KEY_ENGAGEMENT")
+GROQ_API_KEY_EXTRACTION = os.getenv("GROQ_API_KEY_EXTRACTION")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")  # Legacy fallback
+
+if GROQ_API_KEY_ENGAGEMENT:
+    print(f"[Settings] GROQ Engagement Key: {GROQ_API_KEY_ENGAGEMENT[:8]}...")
+if GROQ_API_KEY_EXTRACTION:
+    print(f"[Settings] GROQ Extraction Key: {GROQ_API_KEY_EXTRACTION[:8]}...")
 if GROQ_API_KEY:
-    print(f"[Settings] Loaded GROQ_API_KEY: {GROQ_API_KEY[:8]}...")
-else:
-    print("[ERROR] Settings: GROQ_API_KEY is MISSING or EMPTY")
-    
+    print(f"[Settings] GROQ Fallback Key: {GROQ_API_KEY[:8]}...")
+
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+if OPENROUTER_API_KEY:
+    print(f"[Settings] OpenRouter Key: {OPENROUTER_API_KEY[:12]}...")
 
 # Model Selection - Using best available models
 LLM_MODEL_GROQ = os.getenv("LLM_MODEL_GROQ", "llama-3.3-70b-versatile")
-LLM_MODEL_GEMINI = os.getenv("LLM_MODEL_GEMINI", "gemini-1.5-flash")
+LLM_MODEL_GEMINI = os.getenv("LLM_MODEL_GEMINI", "gemini-2.0-flash")
+LLM_MODEL_OPENROUTER = os.getenv("LLM_MODEL_OPENROUTER", "google/gemini-2.0-flash-001")
 
 # Vector Store Configuration
 CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", str(PROJECT_ROOT / "chroma_db"))

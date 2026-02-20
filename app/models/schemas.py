@@ -59,12 +59,28 @@ class ExtractedIntelligence(BaseModel):
     bankNames: List[str] = Field(default_factory=list, description="Bank names (SBI, HDFC, etc.)")
     ifscCodes: List[str] = Field(default_factory=list, description="IFSC codes for bank branches")
     emailAddresses: List[str] = Field(default_factory=list, description="Email addresses found")
+    caseIds: List[str] = Field(default_factory=list, description="Case/ticket/badge/complaint/FIR IDs")
+    policyNumbers: List[str] = Field(default_factory=list, description="Insurance policy or scheme numbers")
+    orderNumbers: List[str] = Field(default_factory=list, description="Order IDs, tracking or parcel references")
+
 
 class MessageResponse(BaseModel):
+    # Required fields (penalty if missing)
+    sessionId: str = ""
     status: str = Field(..., description="'success' or 'error'")
     scamDetected: bool
-    engagementMetrics: EngagementMetrics
     extractedIntelligence: ExtractedIntelligence
+
+    # Optional scored fields
+    totalMessagesExchanged: int = 0
+    engagementDurationSeconds: int = 0
     agentNotes: str = ""
+    scamType: Optional[str] = None
+    confidenceLevel: Optional[float] = None
+
+    # Nested metrics (kept for compatibility)
+    engagementMetrics: EngagementMetrics
+
+    # Response fields
     reply: Optional[str] = None
     action: Optional[str] = None

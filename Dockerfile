@@ -4,45 +4,45 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    # Standard HF Spaces port
     PORT=7860 \
-    # Fix caching issues
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    HUGGINGFACE_HUB_CACHE=/app/.cache/huggingface
 
-# 1. Install System Dependencies (as ROOT)
+# Install minimal system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. Install Python Dependencies (as ROOT - avoids permission issues)
+# Setup application directory
 WORKDIR /app
+
+# Copy and install Python dependencies early (better layer caching)
 COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# 3. Setup Application (still as ROOT)
+# Copy application code
 COPY . .
 
-# 4. Create User and Fix Permissions (CRITICAL STEP)
-# Create a user with ID 1000
-RUN useradd -m -u 1000 user
-# Create the ChromaDB directory explicitly
-RUN mkdir -p /app/chroma_db
-# Give USER ownership of the entire application directory
-RUN chown -R user:user /app
+# Create cache directory for HuggingFace models
+RUN mkdir -p /app/.cache/huggingface /app/chroma_db
 
-# 5. Pre-download Embedding Model (as ROOT is fine, it goes to cache)
-# But better to do it as user so they can read it, or set cache dir. 
-# We'll just run it; usually cache is readable.
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')" || true
+# Create non-root user
+RUN useradd -m -u 1000 user && \
+    chown -R user:user /app
 
-# 6. Switch to User for Runtime
+# Pre-warm sentence-transformers model (with timeout and continue on error)
+RUN timeout 120 python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')" 2>/dev/null || echo "Model pre-warming skipped (will download on first run)"
+
+# Switch to non-root user
 USER user
-ENV HOME=/home/user \
-    PATH=/home/user/.local/bin:$PATH
 
 # Expose port
 EXPOSE 7860
 
-# Start command
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:7860/api/health')" || exit 1
+
+# Start application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]

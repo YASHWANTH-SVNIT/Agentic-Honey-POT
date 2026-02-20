@@ -1,3 +1,12 @@
+---
+title: Agentic Honey Pot
+emoji: 🍯
+colorFrom: yellow
+colorTo: orange
+sdk: docker
+pinned: false
+---
+
 # 🍯 Agentic Honey-Pot
 
 An AI-powered scam honeypot API that detects, engages, and extracts intelligence from scammers — built for the GUVI Hackathon evaluation.

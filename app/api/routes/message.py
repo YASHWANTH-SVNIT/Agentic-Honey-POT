@@ -51,7 +51,8 @@ async def handle_message(
         # Robustness: Recover state if history exists (e.g., server restart)
         if request.conversationHistory:
             session.turn_count = len(request.conversationHistory) // 2
-            print(f"[API] Restored session state: Turn {session.turn_count} from history")
+            session.scam_detected = True  # History means scam was already detected - skip re-detection
+            print(f"[API] Restored session: Turn {session.turn_count}, scam_detected=True (skipping detection)")
     
     # Check for Phase 9: Session Closure
     if getattr(session, "reported_to_guvi", False):

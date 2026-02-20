@@ -2,6 +2,7 @@
 Adaptive Engagement Agent - Orchestrates dynamic, intelligent conversation flow
 Uses content-based states, goal-oriented extraction, and natural responses
 """
+import asyncio
 from typing import Dict, Any, List, Optional
 from app.models.session import SessionData
 from app.services.engagement.persona_selector import DynamicPersonaGenerator
@@ -24,6 +25,7 @@ class EngagementAgent:
     - Goal-oriented extraction
     - Natural response length (no word limits)
     - Scammer behavior adaptation
+    - PARALLEL: Investigator + LLM response run simultaneously
     """
     
     @classmethod
@@ -32,14 +34,15 @@ class EngagementAgent:
         Main orchestration method for Phase 3 Engagement.
         
         Flow:
-        1. Extract intelligence from scammer's message
-        2. Analyze scammer's behavior (tone, urgency)
-        3. Determine conversation state (content-based)
-        4. Get next extraction goal
-        5. Generate adaptive persona
+        1. Analyze scammer behavior (fast, no LLM)
+        2. Update turn count & determine state
+        3. Get extraction goal from EXISTING intel (previous turns)
+        4. Generate adaptive persona
+        5. Check stop conditions
         6. Build intelligent prompt
-        7. Generate natural response
-        8. Handle completion/reporting
+        7. PARALLEL: Run Investigator + LLM response simultaneously
+        8. Merge new intel into session
+        9. Handle completion/reporting
         """
         
         print(f"\n{'='*50}")
@@ -47,29 +50,7 @@ class EngagementAgent:
         print(f"{'='*50}")
         
         # ============================================
-        # 1. AI-POWERED INTELLIGENCE EXTRACTION
-        # ============================================
-        print(f"[Agent] Extracting intelligence...")
-        try:
-            investigator_result = await InvestigatorAgent.analyze(
-                text=message_text,
-                conversation_history=history
-            )
-            
-            new_intel = investigator_result.get("intelligence", {})
-            intel_count = sum(len(v) if isinstance(v, list) else 1 for v in new_intel.values() if v)
-            print(f"[Agent] Extracted {intel_count} new items")
-            
-            if new_intel:
-                session.extracted_intel = InvestigatorAgent.merge_intelligence(
-                    existing=session.extracted_intel,
-                    new=new_intel
-                )
-        except Exception as e:
-            print(f"[Agent] Extraction error: {e}")
-        
-        # ============================================
-        # 2. ANALYZE SCAMMER BEHAVIOR
+        # 1. ANALYZE SCAMMER BEHAVIOR (Fast, no LLM)
         # ============================================
         scammer_tone = ScammerBehaviorAnalyzer.analyze_tone(message_text)
         is_urgent = ScammerBehaviorAnalyzer.detect_urgency(message_text)
@@ -80,7 +61,7 @@ class EngagementAgent:
         print(f"[Agent] Payment info in message: {payment_info}")
         
         # ============================================
-        # 3. UPDATE TURN COUNT
+        # 2. UPDATE TURN COUNT
         # ============================================
         session.turn_count += 1
         
@@ -89,7 +70,7 @@ class EngagementAgent:
             session.category = "default"
         
         # ============================================
-        # 4. DETERMINE CONVERSATION STATE (CONTENT-BASED)
+        # 3. DETERMINE CONVERSATION STATE (CONTENT-BASED)
         # ============================================
         conversation_state = ConversationStateAnalyzer.determine_state(
             history=history,
@@ -102,7 +83,7 @@ class EngagementAgent:
         print(f"[Agent] Conversation state: {conversation_state}")
         
         # ============================================
-        # 5. GET EXTRACTION GOAL
+        # 4. GET EXTRACTION GOAL (from EXISTING intel)
         # ============================================
         extraction_progress = ExtractionGoalTracker.get_extraction_progress(
             extracted=session.extracted_intel,
@@ -114,7 +95,7 @@ class EngagementAgent:
         print(f"[Agent] Next goal: {next_goal}")
         
         # ============================================
-        # 6. GENERATE ADAPTIVE PERSONA
+        # 5. GENERATE ADAPTIVE PERSONA
         # ============================================
         persona_traits = DynamicPersonaGenerator.generate_adaptive_persona(
             scam_category=session.category,
@@ -129,7 +110,7 @@ class EngagementAgent:
         print(f"[Agent] Persona: {persona_traits.get('primary_emotion')} / {persona_traits.get('compliance_style', '')[:30]}")
         
         # ============================================
-        # 7. CHECK STOP CONDITIONS
+        # 6. CHECK STOP CONDITIONS
         # ============================================
         should_stop = StopConditionChecker.should_stop(session)
         if should_stop or session.turn_count >= settings.MAX_TURNS:
@@ -138,7 +119,7 @@ class EngagementAgent:
             print(f"[Agent] Stop condition triggered - entering termination")
         
         # ============================================
-        # 8. BUILD INTELLIGENT PROMPT
+        # 7. BUILD INTELLIGENT PROMPT
         # ============================================
         prompt = AdaptivePromptBuilder.create_prompt(
             session=session,
@@ -147,23 +128,63 @@ class EngagementAgent:
         )
         
         # ============================================
-        # 9. GENERATE RESPONSE (Natural Length)
+        # 8. PARALLEL: Investigator + LLM Response
         # ============================================
-        llm_client = get_llm_client()
+        print(f"[Agent] Running Investigator + LLM in parallel...")
+        
+        async def run_investigator():
+            """Extract intelligence from scammer's message"""
+            try:
+                return await InvestigatorAgent.analyze(
+                    text=message_text,
+                    conversation_history=history
+                )
+            except Exception as e:
+                print(f"[Agent] Investigator error: {e}")
+                return {}
+
+        async def run_llm_response():
+            """Generate engagement reply"""
+            try:
+                llm_client = get_llm_client()
+                # Run sync LLM call in thread pool to allow true parallelism
+                return await asyncio.to_thread(
+                    llm_client.generate,
+                    prompt,
+                    0.7,   # temperature
+                    150    # max_tokens
+                )
+            except Exception as e:
+                print(f"[Agent] LLM error: {e}")
+                return None
+
+        # Run both in parallel
+        investigator_result, raw_reply = await asyncio.gather(
+            run_investigator(),
+            run_llm_response()
+        )
+        
+        # ============================================
+        # 9. PROCESS INVESTIGATOR RESULT
+        # ============================================
+        if investigator_result and not isinstance(investigator_result, Exception):
+            new_intel = investigator_result.get("intelligence", {})
+            intel_count = sum(len(v) if isinstance(v, list) else 1 for v in new_intel.values() if v)
+            print(f"[Agent] Extracted {intel_count} new items")
+            
+            if new_intel:
+                session.extracted_intel = InvestigatorAgent.merge_intelligence(
+                    existing=session.extracted_intel,
+                    new=new_intel
+                )
+        
+        # ============================================
+        # 10. PROCESS LLM REPLY
+        # ============================================
         reply_text = ""
         
-        try:
-            # Higher max_tokens for natural length, moderate temperature for creativity + coherence
-            # NOTE: Timeout is 25s to leave 5s buffer for GUVI's 30s max requirement
-            response = llm_client.generate(
-                prompt, 
-                temperature=0.7,  # Balanced creativity
-                max_tokens=150,   # Allow longer natural responses
-                timeout=25.0      # 25s timeout (GUVI requires <30s response)
-            )
-            
-            # Clean up response
-            reply_text = response.strip()
+        if raw_reply and not isinstance(raw_reply, Exception):
+            reply_text = raw_reply.strip()
             
             # Remove any quote marks
             reply_text = reply_text.replace('"', '').replace("'", "'")
@@ -179,7 +200,6 @@ class EngagementAgent:
             # Soft limit: if extremely long, truncate gracefully
             word_count = len(reply_text.split())
             if word_count > 50:
-                # Find a natural break point
                 sentences = reply_text.split('.')
                 truncated = []
                 current_words = 0
@@ -197,10 +217,10 @@ class EngagementAgent:
                 print(f"[Agent] Response trimmed from {word_count} to {len(reply_text.split())} words")
             
             print(f"[Agent] Generated reply ({len(reply_text.split())} words): {reply_text[:80]}...")
-            
-        except Exception as e:
-            print(f"[Agent] Generation Error: {e}")
+        
+        else:
             # Context-aware fallback based on scammer tone
+            print(f"[Agent] LLM failed, using fallback reply")
             if scammer_tone == "aggressive":
                 reply_text = "ok ok im trying plz wait"
             elif has_threat:
@@ -209,7 +229,7 @@ class EngagementAgent:
                 reply_text = "umm wait let me understand"
         
         # ============================================
-        # 10. CHECK FOR COMPLETION & REPORT TO GUVI
+        # 11. CHECK FOR COMPLETION & REPORT TO GUVI
         # ============================================
         if session.stage == "termination" or should_stop:
             if not getattr(session, "reported_to_guvi", False):
